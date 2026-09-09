@@ -1,0 +1,86 @@
+/* =========================================================================
+   OUR LITTLE WORLD — design tokens.
+   Deep charcoal / black base, burgundy + dark rose accents, soft cream text,
+   a whisper of gold. Everything else in the app reads from these variables
+   so Samiha's and His visual language stay two dialects of one language.
+   ========================================================================= */
+:root {
+  /* ---- base surfaces ---- */
+  --bg-void: #0b0709;
+  --bg-charcoal: #14101299;
+  --bg-charcoal-solid: #17121444;
+  --bg-panel: #1a1315;
+  --bg-panel-raised: #211a1d;
+
+  /* ---- glass ---- */
+  --glass-fill: rgba(255, 255, 255, 0.045);
+  --glass-fill-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-border-glow: rgba(214, 141, 158, 0.35);
+  --glass-blur: 18px;
+
+  /* ---- burgundy / rose spectrum (shared world) ---- */
+  --burgundy-900: #2b0d16;
+  --burgundy-700: #4a1523;
+  --burgundy-500: #7a1f34;
+  --rose-500: #c65b76;
+  --rose-400: #d68d9e;
+  --rose-300: #eab8c4;
+  --blush-200: #f3d3d9;
+  --cream-100: #f6ece4;
+  --cream-050: #fbf5ef;
+  --gold-400: #cfa66b;
+  --gold-300: #e2c48f;
+
+  /* ---- Samiha's dialect: warmer, softer, more glow ---- */
+  --samiha-accent: #e08ba0;
+  --samiha-accent-soft: #f2c4cf;
+  --samiha-glow: rgba(224, 139, 160, 0.45);
+  --samiha-surface: linear-gradient(160deg, #241318 0%, #170d10 70%);
+
+  /* ---- His dialect: darker, more geometric, deeper red ---- */
+  --his-accent: #9c2b3c;
+  --his-accent-soft: #c65b62;
+  --his-glow: rgba(156, 43, 60, 0.4);
+  --his-surface: linear-gradient(160deg, #1a1113 0%, #0e0a0b 70%);
+
+  /* ---- text ---- */
+  --text-primary: var(--cream-050);
+  --text-secondary: rgba(246, 236, 228, 0.72);
+  --text-muted: rgba(246, 236, 228, 0.48);
+  --text-accent: var(--rose-300);
+
+  /* ---- type ---- */
+  --font-display: "Fraunces", "Cormorant Garamond", serif;
+  --font-editorial: "Cormorant Garamond", serif;
+  --font-body: "Karla", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* ---- radii / spacing ---- */
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 14px;
+  --space-4: 22px;
+  --space-5: 36px;
+  --space-6: 56px;
+
+  /* ---- shadow / glow ---- */
+  --shadow-cinematic: 0 30px 80px -20px rgba(0, 0, 0, 0.75), 0 8px 30px -10px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 18px 45px -18px rgba(0, 0, 0, 0.65);
+  --glow-rose: 0 0 40px -6px rgba(214, 141, 158, 0.55);
+  --glow-gold: 0 0 30px -6px rgba(207, 166, 107, 0.4);
+
+  /* ---- motion ---- */
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.22s;
+  --duration-med: 0.5s;
+  --duration-slow: 0.9s;
+}
+
+/* Active personal dialect: the app stays one world, while the private area
+   can lean subtly warmer (Samiha) or deeper (Him). */
+.app-shell.theme-him { --text-accent: var(--his-accent-soft); --glass-border-glow: rgba(156,43,60,.38); }
+.app-shell.theme-samiha { --text-accent: var(--samiha-accent-soft); --glass-border-glow: rgba(224,139,160,.38); }

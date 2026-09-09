@@ -1,0 +1,91 @@
+.home-page { padding-top: 120px; }
+.home-title { margin-bottom: var(--space-5); }
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  grid-template-rows: auto auto;
+  gap: var(--space-4);
+}
+.home-grid > div:first-child { grid-column: 1; grid-row: 1; }
+.home-grid > div:nth-child(2) { grid-column: 2; grid-row: 1 / span 2; }
+.home-grid > div:nth-child(3) { grid-column: 1; grid-row: 2; }
+
+.home-section { min-height: 160px; }
+.home-section-tall { min-height: 340px; }
+.home-section-title { font-size: 1.6rem; margin: 8px 0 10px; text-transform: capitalize; }
+.home-section-meta { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .home-page {
+    padding-top: 40px;
+    padding-bottom: 190px;
+  }
+
+  .home-title {
+    margin-bottom: var(--space-4);
+  }
+
+  .home-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 12px;
+  }
+
+  .home-grid > div:first-child,
+  .home-grid > div:nth-child(2),
+  .home-grid > div:nth-child(3) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  /* Keep all three cards compact enough for phone screens while preserving
+     the same content and visual hierarchy. The page can still scroll normally. */
+  .home-section,
+  .home-section-tall {
+    min-height: 138px;
+  }
+
+  .home-section-title {
+    font-size: 1.35rem;
+    margin: 7px 0 8px;
+  }
+
+  .home-section-meta {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 205px;
+  }
+
+  .home-grid {
+    gap: 10px;
+  }
+
+  .home-section,
+  .home-section-tall {
+    min-height: 128px;
+  }
+
+  .home-section-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-page {
+    padding-left: 9px;
+    padding-right: 9px;
+    padding-bottom: 205px;
+  }
+
+  .home-section,
+  .home-section-tall {
+    min-height: 122px;
+  }
+}

@@ -1,0 +1,92 @@
+.bg-root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--bg-void);
+}
+
+.bg-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 20% 0%, rgba(122, 31, 52, 0.28), transparent 60%),
+    radial-gradient(50% 40% at 85% 15%, rgba(224, 139, 160, 0.16), transparent 60%),
+    linear-gradient(180deg, #0e0709 0%, #120a0d 45%, #0b0608 100%);
+}
+
+.bg-samiha .bg-gradient {
+  background:
+    radial-gradient(55% 45% at 25% 5%, rgba(224, 139, 160, 0.3), transparent 60%),
+    radial-gradient(45% 40% at 90% 20%, rgba(242, 196, 207, 0.14), transparent 60%),
+    linear-gradient(180deg, #150e12 0%, #1a1013 45%, #0e0809 100%);
+}
+
+.bg-him .bg-gradient {
+  background:
+    radial-gradient(55% 45% at 75% 0%, rgba(156, 43, 60, 0.3), transparent 60%),
+    radial-gradient(45% 40% at 10% 25%, rgba(80, 20, 28, 0.22), transparent 60%),
+    linear-gradient(180deg, #0d0909 0%, #120c0d 45%, #0a0707 100%);
+}
+
+.bg-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  animation: drift 14s ease-in-out infinite;
+}
+.bg-glow-a {
+  width: 42vw;
+  height: 42vw;
+  top: -10%;
+  left: -8%;
+  background: radial-gradient(circle, rgba(122, 31, 52, 0.55), transparent 70%);
+}
+.bg-glow-b {
+  width: 34vw;
+  height: 34vw;
+  bottom: -12%;
+  right: -6%;
+  background: radial-gradient(circle, rgba(214, 141, 158, 0.32), transparent 70%);
+  animation-duration: 18s;
+  animation-delay: 2s;
+}
+
+.bg-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.bg-star {
+  fill: var(--cream-100);
+  animation-name: twinkle;
+  animation-iteration-count: infinite;
+}
+
+.bg-particles {
+  position: absolute;
+  inset: 0;
+}
+.bg-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--rose-300);
+  opacity: 0.35;
+  box-shadow: 0 0 8px 1px rgba(214, 141, 158, 0.5);
+  animation-name: drift;
+  animation-iteration-count: infinite;
+}
+
+.bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 30%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-glow, .bg-star, .bg-particle { animation: none !important; }
+}

@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isSpaceMember(spaceId) {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/spaces/$(spaceId))
+        && request.auth.uid in firestore.get(/databases/(default)/documents/spaces/$(spaceId)).data.memberUids;
+    }
+
+    match /spaces/{spaceId}/memories/{memoryId}/{fileName} {
+      allow read: if isSpaceMember(spaceId);
+      allow write: if isSpaceMember(spaceId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isSpaceMember(spaceId);
+    }
+  }
+}
