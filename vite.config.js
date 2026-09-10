@@ -11,6 +11,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true
+      },
       includeAssets: ["assets/icons/icon-192.png", "assets/icons/icon-512.png"],
       manifest: {
         name: "Our Little World",
