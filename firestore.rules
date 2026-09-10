@@ -20,60 +20,102 @@ service cloud.firestore {
     }
 
     function spaceDoc(spaceId) {
-      return get(/databases/$(database)/documents/spaces/$(spaceId));
+      return get(
+        /databases/$(database)/documents/spaces/$(spaceId)
+      );
     }
 
     function isSpaceMember(spaceId) {
       return signedIn()
-        && exists(/databases/$(database)/documents/spaces/$(spaceId))
+        && exists(
+          /databases/$(database)/documents/spaces/$(spaceId)
+        )
         && myUid() in spaceDoc(spaceId).data.memberUids;
     }
+
+
+    // ============================================================
+    // GLOBAL PROGRESS
+    // ============================================================
+
+    match /{path=**}/progress/{uid} {
+      allow read: if signedIn()
+        && (
+          myUid() == uid
+          || resource.data.uid == myUid()
+        );
+    }
+
 
     // ============================================================
     // USERS
     // ============================================================
 
-        match /{path=**}/progress/{uid} {
-      allow read: if signedIn() && (myUid() == uid || resource.data.uid == myUid());
-    }
-
     match /users/{uid} {
 
-      // User can always manage their own profile
-      allow read, write: if signedIn() && myUid() == uid;
+      // User can manage their own profile.
+      allow read, write: if signedIn()
+        && myUid() == uid;
 
-      // Other authenticated users in the same Space can read profile
+      // Members of the same Space can read each other's profiles.
       allow read: if signedIn()
-        && exists(/databases/$(database)/documents/users/$(myUid()))
+        && exists(
+          /databases/$(database)/documents/users/$(myUid())
+        )
         && resource.data.spaceId != null
         && resource.data.spaceId
-           == get(/databases/$(database)/documents/users/$(myUid())).data.spaceId;
+          == get(
+            /databases/$(database)/documents/users/$(myUid())
+          ).data.spaceId;
 
 
+      // ----------------------------------------------------------
       // PRIVATE PERIOD TRACKER
+      // ----------------------------------------------------------
+
       match /periodTracker/{docId} {
-        allow read, write: if signedIn() && myUid() == uid;
+        allow read, write: if signedIn()
+          && myUid() == uid;
       }
 
+
+      // ----------------------------------------------------------
       // PRIVATE PERIOD CYCLES
+      // ----------------------------------------------------------
+
       match /periodCycles/{cycleId} {
-        allow read, write: if signedIn() && myUid() == uid;
+        allow read, write: if signedIn()
+          && myUid() == uid;
       }
 
+
+      // ----------------------------------------------------------
       // PRIVATE MOODS
+      // ----------------------------------------------------------
+
       match /moods/{date} {
-        allow read, write: if signedIn() && myUid() == uid;
+        allow read, write: if signedIn()
+          && myUid() == uid;
       }
 
+
+      // ----------------------------------------------------------
       // PRIVATE WORKOUTS
+      // ----------------------------------------------------------
+
       match /workouts/{workoutId} {
-        allow read, write: if signedIn() && myUid() == uid;
+        allow read, write: if signedIn()
+          && myUid() == uid;
       }
 
-      // PRIVATE DIARY — new in Our Little World. Owner-only, same shape as
-      // the other private collections above; never exposed to the Space.
+
+      // ----------------------------------------------------------
+      // PRIVATE DIARY
+      // ----------------------------------------------------------
+
       match /diaryEntries/{dateId} {
-        allow read, write: if signedIn() && myUid() == uid;
+        allow read, write: if signedIn()
+          && myUid() == uid;
       }
     }
 
@@ -84,45 +126,102 @@ service cloud.firestore {
 
     match /spaces/{spaceId} {
 
-      // Existing members can read
+      // ----------------------------------------------------------
+      // READ SPACE
+      // ----------------------------------------------------------
+
       allow read: if isSpaceMember(spaceId);
 
-      // Create a new Space with yourself as first member
+
+      // ----------------------------------------------------------
+      // CREATE SPACE
+      // ----------------------------------------------------------
+
       allow create: if signedIn()
         && request.resource.data.createdBy == myUid()
         && request.resource.data.memberUids.size() == 1
         && request.resource.data.memberUids.hasAll([myUid()]);
 
-      /*
-        Space update:
-        1. Existing member can update normally.
-        2. Invited user can add themselves during acceptInvite().
-      */
-      allow update: if isSpaceMember(spaceId)
-        || (
+
+      // ----------------------------------------------------------
+      // UPDATE SPACE
+      //
+      // Existing member:
+      //     Can update their Space normally.
+      //
+      // Invited user:
+      //     Can add themselves only when accepting a valid invite.
+      // ----------------------------------------------------------
+
+      allow update: if
+        isSpaceMember(spaceId)
+
+        ||
+
+        (
           signedIn()
+
+          // User is not already a member.
           && !(myUid() in resource.data.memberUids)
+
+          // User is being added.
           && myUid() in request.resource.data.memberUids
-          && request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+
+          // Exactly one new member.
+          && request.resource.data.memberUids.size()
+            == resource.data.memberUids.size() + 1
+
+          // Maximum two members.
           && request.resource.data.memberUids.size() <= 2
-          && request.resource.data.memberUids.hasAll(resource.data.memberUids)
+
+          // Existing members cannot be removed.
+          && request.resource.data.memberUids
+            .hasAll(resource.data.memberUids)
+
+          // New member profile must exist.
           && request.resource.data.members[myUid()] != null
+
+          // Invite ID must be attached to the Space update.
           && 'lastInviteId' in request.resource.data
-          && exists(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId))
-          && get(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId)).data.spaceId == spaceId
-          && get(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId)).data.invitedEmail == myEmail()
-          && get(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId)).data.status == 'pending'
+
+          // Invite must exist.
+          && exists(
+            /databases/$(database)/documents/invites/
+            $(request.resource.data.lastInviteId)
+          )
+
+          // Invite belongs to this Space.
+          && get(
+            /databases/$(database)/documents/invites/
+            $(request.resource.data.lastInviteId)
+          ).data.spaceId == spaceId
+
+          // Invite was sent to this user's email.
+          && get(
+            /databases/$(database)/documents/invites/
+            $(request.resource.data.lastInviteId)
+          ).data.invitedEmail == myEmail()
+
+          // Invite is still pending.
+          && get(
+            /databases/$(database)/documents/invites/
+            $(request.resource.data.lastInviteId)
+          ).data.status == "pending"
         );
 
+
+      // Spaces cannot be deleted.
       allow delete: if false;
 
 
       // ==========================================================
-      // MEMBERS SUBCOLLECTION
+      // MEMBERS
       // ==========================================================
 
       match /members/{uid} {
+
         allow read: if isSpaceMember(spaceId);
+
         allow write: if isSpaceMember(spaceId);
       }
 
@@ -297,23 +396,21 @@ service cloud.firestore {
 
 
       // ==========================================================
-      // DAILY QUESTION ("Question for Us") — new in Our Little World.
-      // One shared doc per day; either member can write (their own answer
-      // merges into the answers map without touching the other's).
+      // DAILY QUESTIONS
       // ==========================================================
 
       match /dailyQuestions/{date} {
+
         allow read: if isSpaceMember(spaceId);
+
         allow create, update: if isSpaceMember(spaceId);
+
         allow delete: if false;
       }
 
 
       // ==========================================================
-      // SUPPORT REQUESTS ("I'm Here") — new in Our Little World.
-      // Either member can create their own request; either member can
-      // update it to add a response (so the requester's own doc can be
-      // answered by their partner).
+      // SUPPORT REQUESTS
       // ==========================================================
 
       match /supportRequests/{requestId} {
@@ -336,33 +433,82 @@ service cloud.firestore {
 
     match /invites/{inviteId} {
 
+      // ----------------------------------------------------------
+      // READ INVITE
+      //
+      // Inviter can see their own invite.
+      // Invitee can see an invite sent to their email.
+      // ----------------------------------------------------------
+
       allow read: if signedIn()
         && (
           resource.data.invitedByUid == myUid()
-          || resource.data.invitedEmail == myEmail()
+          ||
+          (
+            request.auth.token.email != null
+            && resource.data.invitedEmail
+              == request.auth.token.email.lower()
+          )
         );
+
+
+      // ----------------------------------------------------------
+      // CREATE INVITE
+      //
+      // Only an existing Space member can create an invite.
+      // Space must currently have only one member.
+      // ----------------------------------------------------------
 
       allow create: if signedIn()
         && request.resource.data.invitedByUid == myUid()
         && request.resource.data.status == "pending"
+        && request.resource.data.invitedEmail != null
         && request.resource.data.invitedEmail != myEmail()
+        && request.resource.data.spaceId != null
         && isSpaceMember(request.resource.data.spaceId)
-        && spaceDoc(request.resource.data.spaceId).data.memberUids.size() == 1;
+        && spaceDoc(
+          request.resource.data.spaceId
+        ).data.memberUids.size() == 1;
+
+
+      // ----------------------------------------------------------
+      // UPDATE INVITE
+      //
+      // Invitee:
+      //     pending -> accepted
+      //
+      // Inviter:
+      //     Can change status/cancelledAt only.
+      // ----------------------------------------------------------
 
       allow update: if signedIn()
         && (
           (
-            resource.data.invitedEmail == myEmail()
+            request.auth.token.email != null
+            && resource.data.invitedEmail
+              == request.auth.token.email.lower()
             && resource.data.status == "pending"
             && request.resource.data.status == "accepted"
             && request.resource.data.acceptedByUid == myUid()
           )
+
           ||
+
           (
             resource.data.invitedByUid == myUid()
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "cancelledAt"])
+            && request.resource.data.diff(resource.data)
+              .affectedKeys()
+              .hasOnly([
+                "status",
+                "cancelledAt"
+              ])
           )
         );
+
+
+      // ----------------------------------------------------------
+      // DELETE INVITE
+      // ----------------------------------------------------------
 
       allow delete: if signedIn()
         && resource.data.invitedByUid == myUid();
@@ -370,11 +516,13 @@ service cloud.firestore {
 
 
     // ============================================================
-    // LEGACY DATA — READ ONLY FOR MIGRATION
+    // LEGACY DATA
     // ============================================================
 
     match /coupleData/{docId} {
+
       allow read: if signedIn();
+
       allow write: if false;
     }
   }

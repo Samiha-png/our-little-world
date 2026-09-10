@@ -98,57 +98,70 @@ export async function acceptInvite(inviteId, uid, email, displayName) {
     throw new Error("Your invitation details are incomplete.");
   }
 
-  await runTransaction(db, async (tx) => {
-    const inviteRef = doc(db, "invites", inviteId);
-    const inviteSnap = await tx.get(inviteRef);
-    if (!inviteSnap.exists()) throw new Error("This invite no longer exists.");
+  console.log("[SPACE DEBUG] ACCEPT INVITE START");
 
-    const invite = inviteSnap.data();
-    if (invite.status !== "pending") throw new Error("This invite was already used.");
-    if ((invite.invitedEmail || "").toLowerCase() !== normalizedEmail) {
-      throw new Error("This invite isn't for your account.");
-    }
+  try {
+    await runTransaction(db, async (tx) => {
+      console.log("[SPACE DEBUG] STEP 1 → Reading invite");
+      const inviteRef = doc(db, "invites", inviteId);
+      const inviteSnap = await tx.get(inviteRef);
+      if (!inviteSnap.exists()) throw new Error("This invite no longer exists.");
 
-    const spaceRef = doc(db, "spaces", invite.spaceId);
-    const spaceSnap = await tx.get(spaceRef);
-    if (!spaceSnap.exists()) throw new Error("That Space no longer exists.");
+      console.log("[SPACE DEBUG] STEP 2 → Validating invite");
+      const invite = inviteSnap.data();
+      if (invite.status !== "pending") throw new Error("This invite was already used.");
+      if ((invite.invitedEmail || "").toLowerCase() !== normalizedEmail) {
+        throw new Error("This invite isn't for your account.");
+      }
+      if (!invite.spaceId) {
+        throw new Error("This invite does not contain a valid Space ID.");
+      }
 
-    const space = spaceSnap.data();
-    const memberUids = Array.isArray(space.memberUids) ? space.memberUids : [];
+      console.log("[SPACE DEBUG] STEP 3 → References prepared");
+      const spaceRef = doc(db, "spaces", invite.spaceId);
+      const userRef = doc(db, "users", uid);
 
-    if (memberUids.includes(uid)) {
-      throw new Error("You are already a member of this Space.");
-    }
-    if (memberUids.length >= 2) {
-      throw new Error("This Space already has two members.");
-    }
+      console.log("[SPACE DEBUG] STEP 4 → Queueing Space update");
+      tx.update(spaceRef, {
+        memberUids: arrayUnion(uid),
+        [`members.${uid}`]: {
+          displayName:
+            displayName ||
+            normalizedEmail.split("@")[0] ||
+            "You",
+          email: normalizedEmail,
+          joinedAt: Date.now()
+        },
+        lastInviteId: inviteId
+      });
 
-    const userRef = doc(db, "users", uid);
+      console.log("[SPACE DEBUG] STEP 5 → Queueing invite acceptance");
+      tx.update(inviteRef, {
+        status: "accepted",
+        acceptedAt: Date.now(),
+        acceptedByUid: uid
+      });
 
-    tx.update(spaceRef, {
-      memberUids: arrayUnion(uid),
-      [`members.${uid}`]: {
-        displayName,
+      console.log("[SPACE DEBUG] STEP 6 → Queueing user update");
+      tx.set(userRef, {
+        uid,
         email: normalizedEmail,
-        joinedAt: Date.now()
-      },
-      lastInviteId: inviteId
+        displayName:
+          displayName ||
+          normalizedEmail.split("@")[0] ||
+          "You",
+        spaceId: invite.spaceId,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
     });
 
-    tx.update(inviteRef, {
-      status: "accepted",
-      acceptedAt: Date.now(),
-      acceptedByUid: uid
-    });
-
-    tx.set(userRef, {
-      uid,
-      email: normalizedEmail,
-      displayName: displayName || normalizedEmail.split("@")[0] || "You",
-      spaceId: invite.spaceId,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-  });
+    console.log("[SPACE DEBUG] ACCEPT INVITE SUCCESS");
+  } catch (error) {
+    console.error("[SPACE DEBUG ERROR] Error code:", error?.code || "N/A");
+    console.error("[SPACE DEBUG ERROR] Error message:", error?.message || "Unknown error");
+    console.error("[SPACE DEBUG ERROR] Full error:", error);
+    throw error;
+  }
 }
 
 export async function cancelInvite(inviteId) {
