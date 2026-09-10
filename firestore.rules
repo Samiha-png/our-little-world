@@ -16,7 +16,7 @@ service cloud.firestore {
     }
 
     function myEmail() {
-      return request.auth.token.email.lower();
+      return request.auth.token.email != null ? request.auth.token.email.lower() : "";
     }
 
     function spaceDoc(spaceId) {
