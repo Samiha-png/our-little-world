@@ -6,6 +6,7 @@ service firebase.storage {
     function isSignedIn() {
       return request.auth != null;
     }
+
     function isSpaceMember(spaceId) {
       return isSignedIn()
         && firestore.exists(/databases/(default)/documents/spaces/$(spaceId))
@@ -13,10 +14,15 @@ service firebase.storage {
     }
 
     match /spaces/{spaceId}/memories/{memoryId}/{fileName} {
+      // Members of the Space can view memory photos
       allow read: if isSpaceMember(spaceId);
-      allow write: if isSpaceMember(spaceId)
+
+      // Members can upload memory images up to 10MB
+      allow create, update: if isSpaceMember(spaceId)
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
+
+      // Members can delete memory images
       allow delete: if isSpaceMember(spaceId);
     }
   }

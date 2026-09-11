@@ -124,46 +124,121 @@ export async function deleteGoal(spaceId, goalId) {
 /* ------------------------------ MEMORIES ----------------------------------
    Images go to Firebase Storage at spaces/{spaceId}/memories/{memoryId}/{file}
    ---------------------------------------------------------------------- */
-export function listenMemories(spaceId, cb) {
-  return listenSafely(query(sp(spaceId, "memories"), orderBy("createdAt", "desc")), (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+export function listenMemories(spaceId, cb, onError) {
+  return onSnapshot(
+    query(sp(spaceId, "memories"), orderBy("createdAt", "desc")),
+    (snap) => {
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      cb(docs);
+    },
+    (error) => {
+      console.error("[Firebase listenMemories] Error listening to memories:", error.code, error.message, error);
+      if (onError) onError(error);
+      window.dispatchEvent(new CustomEvent("firebase-listener-error", { detail: { label: "memories", error } }));
+    }
+  );
 }
+
 export async function addMemory(spaceId, uid, displayName, { title, date, text, caption, file }) {
+  if (!spaceId) throw new Error("Space ID is required to add a memory.");
+  if (!uid) throw new Error("User ID is required to add a memory.");
+
+  // 1. Validate file if present
+  if (file) {
+    if (!file.type || !file.type.startsWith("image/")) {
+      throw new Error("Invalid file type. Please upload an image file (JPEG, PNG, WebP, GIF).");
+    }
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_SIZE) {
+      throw new Error("Image size exceeds the 10MB limit. Please select a smaller photo.");
+    }
+  }
+
+  // 2. Prepare memory document reference first to obtain memory ID
   const memRef = doc(sp(spaceId, "memories"));
-  let imageUrl = null, storagePath = null;
+  let imageUrl = null;
+  let storagePath = null;
+  let fileRef = null;
+
+  // 3. Upload image to Firebase Storage if a file was selected
   if (file) {
     storagePath = `spaces/${spaceId}/memories/${memRef.id}/${file.name}`;
-    const fileRef = ref(storage, storagePath);
-    await uploadBytes(fileRef, file);
-    imageUrl = await getDownloadURL(fileRef);
+    fileRef = ref(storage, storagePath);
+    const metadata = {
+      contentType: file.type || "image/jpeg"
+    };
+
+    try {
+      console.log(`[STORAGE DEBUG] Uploading image to ${storagePath}...`);
+      await uploadBytes(fileRef, file, metadata);
+      imageUrl = await getDownloadURL(fileRef);
+      console.log(`[STORAGE DEBUG] Upload successful. Download URL obtained.`);
+    } catch (storageError) {
+      console.error("[STORAGE DEBUG] Image upload failed:", storageError.code, storageError.message, storageError);
+      if (storageError.message && storageError.message.includes("CORS")) {
+        throw new Error("Storage upload failed due to CORS policy. Please configure bucket CORS.");
+      }
+      if (storageError.code === "storage/unauthorized") {
+        throw new Error("Permission denied: You do not have permission to upload to this Space's storage.");
+      }
+      throw new Error(`Photo upload failed: ${storageError.message || storageError.code || "Unknown error"}`);
+    }
   }
-  await setDoc(memRef, {
-    title: title || "Untitled memory",
-    date: date || todayKey(),
-    text: text || "",
-    caption: caption || "",
-    imageUrl, storagePath,
-    authorUid: uid, authorName: displayName,
-    reactions: {},
-    createdAt: serverTimestamp()
-  });
-  return memRef.id;
+
+  // 4. Save memory document to Firestore (only after storage succeeds)
+  try {
+    await setDoc(memRef, {
+      title: title?.trim() || "Untitled memory",
+      date: date || todayKey(),
+      text: text?.trim() || "",
+      caption: caption?.trim() || "",
+      imageUrl,
+      storagePath,
+      authorUid: uid,
+      authorName: displayName || "Anonymous",
+      reactions: {},
+      createdAt: serverTimestamp()
+    });
+    console.log(`[STORAGE DEBUG] Memory doc ${memRef.id} created successfully.`);
+    return memRef.id;
+  } catch (firestoreError) {
+    console.error("[addMemory] Firestore write failed, cleaning up uploaded file to avoid orphans:", firestoreError);
+    // Cleanup uploaded storage file if Firestore document write failed
+    if (fileRef) {
+      try {
+        await deleteObject(fileRef);
+        console.log(`[STORAGE DEBUG] Cleaned up orphaned file at ${storagePath}`);
+      } catch (cleanupError) {
+        console.warn("[STORAGE DEBUG] Failed to delete orphaned storage file:", cleanupError);
+      }
+    }
+    throw firestoreError;
+  }
 }
+
 export async function deleteMemory(spaceId, memory) {
   if (memory.storagePath) {
-    try { await deleteObject(ref(storage, memory.storagePath)); } catch (e) { /* already gone */ }
+    try {
+      await deleteObject(ref(storage, memory.storagePath));
+    } catch (e) {
+      console.warn("[deleteMemory] Storage file deletion failed or already deleted:", e);
+    }
   }
   return deleteDoc(spDoc(spaceId, "memories", memory.id));
 }
+
 export async function setMemoryReaction(spaceId, memoryId, uid, emoji) {
-  // Tapping the same emoji again removes it (toggle).
-  const memSnap = await getDoc(spDoc(spaceId, "memories", memoryId));
-  const current = memSnap.exists() ? (memSnap.data().reactions || {}) : {};
-  const patch = current[uid] === emoji
-    ? { [`reactions.${uid}`]: deleteField() }
-    : { [`reactions.${uid}`]: emoji };
-  return updateDoc(spDoc(spaceId, "memories", memoryId), patch);
+  try {
+    const memSnap = await getDoc(spDoc(spaceId, "memories", memoryId));
+    const current = memSnap.exists() ? (memSnap.data().reactions || {}) : {};
+    const patch = current[uid] === emoji
+      ? { [`reactions.${uid}`]: deleteField() }
+      : { [`reactions.${uid}`]: emoji };
+    return await updateDoc(spDoc(spaceId, "memories", memoryId), patch);
+  } catch (err) {
+    console.error(`[setMemoryReaction] Failed to update reaction on memory ${memoryId}:`, err);
+    throw err;
+  }
 }
 
 /* --------------------------- DAILY CONNECTION ------------------------------

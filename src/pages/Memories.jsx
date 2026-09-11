@@ -14,24 +14,81 @@ export default function Memories({ ctx }) {
   const [active, setActive] = useState(null);
   const [form, setForm] = useState({ title: "", date: todayKey(), text: "", caption: "", file: null });
   const [saving, setSaving] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [error, setError] = useState(null);
+  const [listError, setListError] = useState(null);
 
   useEffect(() => {
     if (!spaceId) return;
-    const unsub = listenMemories(spaceId, setMemories);
+    const unsub = listenMemories(
+      spaceId,
+      (docs) => {
+        setMemories(docs);
+        setListError(null);
+      },
+      (err) => {
+        console.error("[Memories] Realtime listener error:", err);
+        setListError(err.message || "Failed to load memories");
+      }
+    );
     return unsub;
   }, [spaceId]);
 
+  // Keep active polaroid in sync with live memories (e.g. when reactions change)
+  useEffect(() => {
+    if (active) {
+      const fresh = memories.find((m) => m.id === active.id);
+      if (fresh) setActive(fresh);
+    }
+  }, [memories]);
+
   const myName = profile?.displayName || user.email.split("@")[0];
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0] || null;
+    setError(null);
+    if (file) {
+      if (!file.type || !file.type.startsWith("image/")) {
+        setError("Please choose a valid image file (JPEG, PNG, WebP, etc.).");
+        e.target.value = "";
+        setForm((prev) => ({ ...prev, file: null }));
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Image size exceeds the 10MB limit. Please choose a smaller photo.");
+        e.target.value = "";
+        setForm((prev) => ({ ...prev, file: null }));
+        return;
+      }
+    }
+    setForm((prev) => ({ ...prev, file }));
+  }
 
   async function handleAdd(e) {
     e.preventDefault();
+    setError(null);
     setSaving(true);
+    setUploadStatus(form.file ? "Uploading photo…" : "Saving memory…");
+
     try {
       await addMemory(spaceId, user.uid, myName, form);
       setForm({ title: "", date: todayKey(), text: "", caption: "", file: null });
       setOpen(false);
+    } catch (err) {
+      console.error("[Memories] Error creating memory:", err);
+      setError(err.message || "Failed to save memory. Please check your connection.");
     } finally {
       setSaving(false);
+      setUploadStatus("");
+    }
+  }
+
+  async function handleReaction(emoji) {
+    if (!active || !spaceId || !user?.uid) return;
+    try {
+      await setMemoryReaction(spaceId, active.id, user.uid, emoji);
+    } catch (err) {
+      console.error("[Memories] Failed to update reaction:", err);
     }
   }
 
@@ -47,9 +104,15 @@ export default function Memories({ ctx }) {
             <button className={view === "grid" ? "is-active" : ""} onClick={() => setView("grid")}>Polaroids</button>
             <button className={view === "timeline" ? "is-active" : ""} onClick={() => setView("timeline")}>Our Story</button>
           </div>
-          <button className="memories-add" onClick={() => setOpen(true)}>+ Add memory</button>
+          <button className="memories-add" onClick={() => { setError(null); setOpen(true); }}>+ Add memory</button>
         </div>
       </motion.div>
+
+      {listError && (
+        <div style={{ color: "var(--rose-400)", marginBottom: "var(--space-3)", fontSize: "13px" }}>
+          Notice: {listError}
+        </div>
+      )}
 
       {view === "grid" ? (
         <div className="memories-masonry">
@@ -104,7 +167,7 @@ export default function Memories({ ctx }) {
                   <span
                     key={r}
                     className={active.reactions?.[user.uid] === r ? "is-picked" : ""}
-                    onClick={() => setMemoryReaction(spaceId, active.id, user.uid, r)}
+                    onClick={() => handleReaction(r)}
                   >
                     {r}
                   </span>
@@ -124,8 +187,17 @@ export default function Memories({ ctx }) {
                 <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
                 <textarea placeholder="Tell the story…" rows={3} value={form.text} onChange={(e) => setForm({ ...form, text: e.target.value })} />
                 <input placeholder="Caption" value={form.caption} onChange={(e) => setForm({ ...form, caption: e.target.value })} />
-                <input type="file" accept="image/*" onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })} />
-                <button type="submit" disabled={saving}>{saving ? "Saving…" : "Add memory"}</button>
+                <input type="file" accept="image/*" onChange={handleFileChange} />
+
+                {error && (
+                  <div style={{ color: "var(--rose-400)", fontSize: "13px", background: "rgba(224, 76, 102, 0.1)", padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(224, 76, 102, 0.2)" }}>
+                    {error}
+                  </div>
+                )}
+
+                <button type="submit" disabled={saving}>
+                  {saving ? (uploadStatus || "Saving…") : "Add memory"}
+                </button>
               </form>
             </motion.div>
           </motion.div>
