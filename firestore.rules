@@ -359,8 +359,7 @@ service cloud.firestore {
               .hasOnly(['reactions'])
           );
 
-        allow delete: if isSpaceMember(spaceId)
-          && resource.data.authorUid == myUid();
+        allow delete: if isSpaceMember(spaceId);
       }
 
 

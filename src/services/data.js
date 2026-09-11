@@ -225,8 +225,11 @@ export async function addMemory(spaceId, uid, displayName, { title, date, text, 
   }
 }
 
-export async function deleteMemory(spaceId, memory) {
-  return deleteDoc(spDoc(spaceId, "memories", memory.id));
+export async function deleteMemory(spaceId, memoryOrId) {
+  if (!spaceId) throw new Error("Space ID is required to delete a memory.");
+  const id = typeof memoryOrId === "object" ? memoryOrId?.id : memoryOrId;
+  if (!id) throw new Error("Memory ID is required to delete a memory.");
+  return deleteDoc(spDoc(spaceId, "memories", id));
 }
 
 export async function setMemoryReaction(spaceId, memoryId, uid, emoji) {

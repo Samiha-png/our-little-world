@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/GlassCard";
-import { listenMemories, addMemory, setMemoryReaction, todayKey } from "../services/data";
+import { listenMemories, addMemory, deleteMemory, setMemoryReaction, todayKey } from "../services/data";
 import "./Memories.css";
 
 const REACTIONS = ["❤️", "🫂", "✨", "🥹", "😂"];
@@ -14,6 +14,7 @@ export default function Memories({ ctx }) {
   const [active, setActive] = useState(null);
   const [form, setForm] = useState({ title: "", date: todayKey(), text: "", caption: "", file: null });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [error, setError] = useState(null);
   const [listError, setListError] = useState(null);
@@ -92,6 +93,20 @@ export default function Memories({ ctx }) {
     }
   }
 
+  async function handleDelete(memoryId) {
+    if (!window.confirm("Are you sure you want to delete this memory?")) return;
+    setDeleting(true);
+    try {
+      await deleteMemory(spaceId, memoryId);
+      setActive(null);
+    } catch (err) {
+      console.error("[Memories] Delete failed:", err);
+      alert("Failed to delete memory. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="page-container memories-page">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="memories-header">
@@ -162,16 +177,26 @@ export default function Memories({ ctx }) {
               <h2>{active.title}</h2>
               <p className="memory-modal-date">{active.date} · {active.authorName}</p>
               {active.text && <p className="memory-modal-text">{active.text}</p>}
-              <div className="memory-modal-reactions">
-                {REACTIONS.map((r) => (
-                  <span
-                    key={r}
-                    className={active.reactions?.[user.uid] === r ? "is-picked" : ""}
-                    onClick={() => handleReaction(r)}
-                  >
-                    {r}
-                  </span>
-                ))}
+              <div className="memory-modal-footer">
+                <div className="memory-modal-reactions">
+                  {REACTIONS.map((r) => (
+                    <span
+                      key={r}
+                      className={active.reactions?.[user.uid] === r ? "is-picked" : ""}
+                      onClick={() => handleReaction(r)}
+                    >
+                      {r}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  className="memory-delete-btn"
+                  onClick={() => handleDelete(active.id)}
+                  disabled={deleting}
+                  title="Delete memory"
+                >
+                  {deleting ? "Deleting…" : "Delete"}
+                </button>
               </div>
             </motion.div>
           </motion.div>
