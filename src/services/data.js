@@ -286,18 +286,44 @@ export async function reactToDailyConnection(spaceId, dateStr, entryUid, reactor
 }
 
 /* -------------------------------- NOTES ------------------------------------ */
-export function listenNotes(spaceId, cb) {
-  return listenSafely(query(sp(spaceId, "notes"), orderBy("createdAt", "desc")), (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+export function listenNotes(spaceId, cb, onError) {
+  return onSnapshot(
+    query(sp(spaceId, "notes"), orderBy("createdAt", "desc")),
+    (snap) => {
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      cb(docs);
+    },
+    (error) => {
+      console.error("[Firebase listenNotes] Error listening to notes:", error);
+      if (onError) onError(error);
+      window.dispatchEvent(new CustomEvent("firebase-listener-error", { detail: { label: "notes", error } }));
+    }
+  );
 }
-export async function addNote(spaceId, uid, displayName, text) {
+
+export async function addNote(spaceId, uid, displayName, { title, text, mood, date }) {
+  if (!spaceId) throw new Error("Space ID is required to add a note.");
+  if (!uid) throw new Error("User ID is required to add a note.");
+  const cleanText = (typeof text === "string" ? text : "").trim();
+  const cleanTitle = (typeof title === "string" ? title : "").trim();
+  if (!cleanText && !cleanTitle) throw new Error("Note content cannot be empty.");
+
   return addDoc(sp(spaceId, "notes"), {
-    text, authorUid: uid, authorName: displayName, createdAt: serverTimestamp()
+    title: cleanTitle || "Untitled Note",
+    text: cleanText,
+    mood: mood || null,
+    authorUid: uid,
+    authorName: displayName || "Anonymous",
+    date: date || todayKey(),
+    createdAt: serverTimestamp()
   });
 }
-export async function deleteNote(spaceId, noteId) {
-  return deleteDoc(spDoc(spaceId, "notes", noteId));
+
+export async function deleteNote(spaceId, noteOrId) {
+  if (!spaceId) throw new Error("Space ID is required to delete a note.");
+  const id = typeof noteOrId === "object" ? noteOrId?.id : noteOrId;
+  if (!id) throw new Error("Note ID is required to delete a note.");
+  return deleteDoc(spDoc(spaceId, "notes", id));
 }
 
 /* ------------------------------ DAY PROGRESS --------------------------------

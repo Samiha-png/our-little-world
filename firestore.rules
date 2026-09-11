@@ -374,8 +374,7 @@ service cloud.firestore {
         allow create: if isSpaceMember(spaceId)
           && request.resource.data.authorUid == myUid();
 
-        allow update, delete: if isSpaceMember(spaceId)
-          && resource.data.authorUid == myUid();
+        allow update, delete: if isSpaceMember(spaceId);
       }
 
 
