@@ -122,8 +122,43 @@ export async function deleteGoal(spaceId, goalId) {
 }
 
 /* ------------------------------ MEMORIES ----------------------------------
-   Images go to Firebase Storage at spaces/{spaceId}/memories/{memoryId}/{file}
+   Stores high-quality optimized memory images directly in Firestore docs.
+   Works 100% free on Firebase Spark tier without requiring a billing account.
    ---------------------------------------------------------------------- */
+export async function optimizeImage(file, maxDimension = 1200, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Compress to optimized JPEG format data url
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error("Failed to load image for processing."));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("Failed to read image file."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function listenMemories(spaceId, cb, onError) {
   return onSnapshot(
     query(sp(spaceId, "memories"), orderBy("createdAt", "desc")),
@@ -143,49 +178,32 @@ export async function addMemory(spaceId, uid, displayName, { title, date, text, 
   if (!spaceId) throw new Error("Space ID is required to add a memory.");
   if (!uid) throw new Error("User ID is required to add a memory.");
 
-  // 1. Validate file if present
+  let imageUrl = null;
+
+  // 1. Validate & optimize image if provided
   if (file) {
     if (!file.type || !file.type.startsWith("image/")) {
       throw new Error("Invalid file type. Please upload an image file (JPEG, PNG, WebP, GIF).");
     }
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const MAX_SIZE = 15 * 1024 * 1024; // 15MB input limit
     if (file.size > MAX_SIZE) {
-      throw new Error("Image size exceeds the 10MB limit. Please select a smaller photo.");
+      throw new Error("Image size exceeds the 15MB limit. Please select a smaller photo.");
     }
-  }
-
-  // 2. Prepare memory document reference first to obtain memory ID
-  const memRef = doc(sp(spaceId, "memories"));
-  let imageUrl = null;
-  let storagePath = null;
-  let fileRef = null;
-
-  // 3. Upload image to Firebase Storage if a file was selected
-  if (file) {
-    storagePath = `spaces/${spaceId}/memories/${memRef.id}/${file.name}`;
-    fileRef = ref(storage, storagePath);
-    const metadata = {
-      contentType: file.type || "image/jpeg"
-    };
 
     try {
-      console.log(`[STORAGE DEBUG] Uploading image to ${storagePath}...`);
-      await uploadBytes(fileRef, file, metadata);
-      imageUrl = await getDownloadURL(fileRef);
-      console.log(`[STORAGE DEBUG] Upload successful. Download URL obtained.`);
-    } catch (storageError) {
-      console.error("[STORAGE DEBUG] Image upload failed:", storageError.code, storageError.message, storageError);
-      if (storageError.message && storageError.message.includes("CORS")) {
-        throw new Error("Storage upload failed due to CORS policy. Please configure bucket CORS.");
-      }
-      if (storageError.code === "storage/unauthorized") {
-        throw new Error("Permission denied: You do not have permission to upload to this Space's storage.");
-      }
-      throw new Error(`Photo upload failed: ${storageError.message || storageError.code || "Unknown error"}`);
+      console.log(`[MEMORY] Optimizing image: ${file.name} (${Math.round(file.size / 1024)} KB)...`);
+      imageUrl = await optimizeImage(file, 1200, 0.82);
+      console.log(`[MEMORY] Image optimized successfully.`);
+    } catch (optError) {
+      console.error("[MEMORY] Image optimization error:", optError);
+      throw new Error("Could not process image. Please try another photo.");
     }
   }
 
-  // 4. Save memory document to Firestore (only after storage succeeds)
+  // 2. Prepare memory document reference in Firestore
+  const memRef = doc(sp(spaceId, "memories"));
+
+  // 3. Save memory document to Firestore
   try {
     await setDoc(memRef, {
       title: title?.trim() || "Untitled memory",
@@ -193,37 +211,21 @@ export async function addMemory(spaceId, uid, displayName, { title, date, text, 
       text: text?.trim() || "",
       caption: caption?.trim() || "",
       imageUrl,
-      storagePath,
+      storagePath: null,
       authorUid: uid,
       authorName: displayName || "Anonymous",
       reactions: {},
       createdAt: serverTimestamp()
     });
-    console.log(`[STORAGE DEBUG] Memory doc ${memRef.id} created successfully.`);
+    console.log(`[MEMORY] Memory doc ${memRef.id} created successfully.`);
     return memRef.id;
   } catch (firestoreError) {
-    console.error("[addMemory] Firestore write failed, cleaning up uploaded file to avoid orphans:", firestoreError);
-    // Cleanup uploaded storage file if Firestore document write failed
-    if (fileRef) {
-      try {
-        await deleteObject(fileRef);
-        console.log(`[STORAGE DEBUG] Cleaned up orphaned file at ${storagePath}`);
-      } catch (cleanupError) {
-        console.warn("[STORAGE DEBUG] Failed to delete orphaned storage file:", cleanupError);
-      }
-    }
+    console.error("[addMemory] Firestore write failed:", firestoreError);
     throw firestoreError;
   }
 }
 
 export async function deleteMemory(spaceId, memory) {
-  if (memory.storagePath) {
-    try {
-      await deleteObject(ref(storage, memory.storagePath));
-    } catch (e) {
-      console.warn("[deleteMemory] Storage file deletion failed or already deleted:", e);
-    }
-  }
   return deleteDoc(spDoc(spaceId, "memories", memory.id));
 }
 
