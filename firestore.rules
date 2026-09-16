@@ -1,0 +1,381 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myUid() {
+      return request.auth.uid;
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function spaceDoc(spaceId) {
+      return get(/databases/$(database)/documents/spaces/$(spaceId));
+    }
+
+    function isSpaceMember(spaceId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/spaces/$(spaceId))
+        && myUid() in spaceDoc(spaceId).data.memberUids;
+    }
+
+    // ============================================================
+    // USERS
+    // ============================================================
+
+        match /{path=**}/progress/{uid} {
+      allow read: if signedIn() && (myUid() == uid || resource.data.uid == myUid());
+    }
+
+    match /users/{uid} {
+
+      // User can always manage their own profile
+      allow read, write: if signedIn() && myUid() == uid;
+
+      // Other authenticated users in the same Space can read profile
+      allow read: if signedIn()
+        && exists(/databases/$(database)/documents/users/$(myUid()))
+        && resource.data.spaceId != null
+        && resource.data.spaceId
+           == get(/databases/$(database)/documents/users/$(myUid())).data.spaceId;
+
+
+      // PRIVATE PERIOD TRACKER
+      match /periodTracker/{docId} {
+        allow read, write: if signedIn() && myUid() == uid;
+      }
+
+      // PRIVATE PERIOD CYCLES
+      match /periodCycles/{cycleId} {
+        allow read, write: if signedIn() && myUid() == uid;
+      }
+
+      // PRIVATE MOODS
+      match /moods/{date} {
+        allow read, write: if signedIn() && myUid() == uid;
+      }
+
+      // PRIVATE WORKOUTS
+      match /workouts/{workoutId} {
+        allow read, write: if signedIn() && myUid() == uid;
+      }
+
+      // PRIVATE DIARY — new in Our Little World. Owner-only, same shape as
+      // the other private collections above; never exposed to the Space.
+      match /diaryEntries/{dateId} {
+        allow read, write: if signedIn() && myUid() == uid;
+      }
+    }
+
+
+    // ============================================================
+    // SPACES
+    // ============================================================
+
+    match /spaces/{spaceId} {
+
+      // Existing members can read
+      allow read: if isSpaceMember(spaceId);
+
+      // Create a new Space with yourself as first member
+      allow create: if signedIn()
+        && request.resource.data.createdBy == myUid()
+        && request.resource.data.memberUids.size() == 1
+        && request.resource.data.memberUids.hasAll([myUid()]);
+
+      /*
+        Space update:
+        1. Existing member can update normally.
+        2. Invited user can add themselves during acceptInvite().
+      */
+      allow update: if isSpaceMember(spaceId)
+        || (
+          signedIn()
+          && !(myUid() in resource.data.memberUids)
+          && myUid() in request.resource.data.memberUids
+          && request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+          && request.resource.data.memberUids.size() <= 2
+          && request.resource.data.memberUids.hasAll(resource.data.memberUids)
+          && request.resource.data.members[myUid()] != null
+          && 'lastInviteId' in request.resource.data
+          && exists(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId))
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId)).data.spaceId == spaceId
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId)).data.invitedEmail == myEmail()
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.lastInviteId)).data.status == 'pending'
+        );
+
+      allow delete: if false;
+
+
+      // ==========================================================
+      // MEMBERS SUBCOLLECTION
+      // ==========================================================
+
+      match /members/{uid} {
+        allow read: if isSpaceMember(spaceId);
+        allow write: if isSpaceMember(spaceId);
+      }
+
+
+      // ==========================================================
+      // TASKS
+      // ==========================================================
+
+      match /tasks/{taskId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.ownerUid == myUid();
+
+        allow update, delete: if isSpaceMember(spaceId)
+          && resource.data.ownerUid == myUid();
+      }
+
+
+      // ==========================================================
+      // ROUTINES
+      // ==========================================================
+
+      match /routines/{routineId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.ownerUid == myUid();
+
+        allow update, delete: if isSpaceMember(spaceId)
+          && resource.data.ownerUid == myUid();
+      }
+
+
+      // ==========================================================
+      // HABITS
+      // ==========================================================
+
+      match /habits/{habitId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.ownerUid == myUid();
+
+        allow update, delete: if isSpaceMember(spaceId)
+          && resource.data.ownerUid == myUid();
+      }
+
+
+      // ==========================================================
+      // GOALS
+      // ==========================================================
+
+      match /goals/{goalId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.createdByUid == myUid();
+
+        allow update: if isSpaceMember(spaceId);
+
+        allow delete: if isSpaceMember(spaceId)
+          && resource.data.createdByUid == myUid();
+      }
+
+
+      // ==========================================================
+      // DAILY PROGRESS
+      // ==========================================================
+
+      match /days/{date}/progress/{uid} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create, update: if isSpaceMember(spaceId)
+          && myUid() == uid;
+
+        allow delete: if false;
+      }
+
+
+      // ==========================================================
+      // DAILY CONNECTIONS
+      // ==========================================================
+
+      match /dailyConnections/{date}/entries/{uid} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create, update: if isSpaceMember(spaceId)
+          && myUid() == uid;
+
+        allow delete: if isSpaceMember(spaceId)
+          && myUid() == uid;
+      }
+
+
+      // ==========================================================
+      // SHARED MOODS
+      // ==========================================================
+
+      match /sharedMoods/{date}/entries/{uid} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create, update: if isSpaceMember(spaceId)
+          && myUid() == uid;
+
+        allow delete: if isSpaceMember(spaceId)
+          && myUid() == uid;
+      }
+
+
+      // ==========================================================
+      // MEMORIES
+      // ==========================================================
+
+      match /memories/{memoryId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.authorUid == myUid();
+
+        allow update: if isSpaceMember(spaceId)
+          && (
+            resource.data.authorUid == myUid()
+            ||
+            request.resource.data.diff(resource.data)
+              .affectedKeys()
+              .hasOnly(['reactions'])
+          );
+
+        allow delete: if isSpaceMember(spaceId)
+          && resource.data.authorUid == myUid();
+      }
+
+
+      // ==========================================================
+      // NOTES
+      // ==========================================================
+
+      match /notes/{noteId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.authorUid == myUid();
+
+        allow update, delete: if isSpaceMember(spaceId)
+          && resource.data.authorUid == myUid();
+      }
+
+
+      // ==========================================================
+      // PINGS
+      // ==========================================================
+
+      match /pings/{pingId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.uid == myUid();
+
+        allow delete: if false;
+      }
+
+
+      // ==========================================================
+      // DAILY QUESTION ("Question for Us") — new in Our Little World.
+      // One shared doc per day; either member can write (their own answer
+      // merges into the answers map without touching the other's).
+      // ==========================================================
+
+      match /dailyQuestions/{date} {
+        allow read: if isSpaceMember(spaceId);
+        allow create, update: if isSpaceMember(spaceId);
+        allow delete: if false;
+      }
+
+
+      // ==========================================================
+      // SUPPORT REQUESTS ("I'm Here") — new in Our Little World.
+      // Either member can create their own request; either member can
+      // update it to add a response (so the requester's own doc can be
+      // answered by their partner).
+      // ==========================================================
+
+      match /supportRequests/{requestId} {
+
+        allow read: if isSpaceMember(spaceId);
+
+        allow create: if isSpaceMember(spaceId)
+          && request.resource.data.uid == myUid();
+
+        allow update: if isSpaceMember(spaceId);
+
+        allow delete: if false;
+      }
+    }
+
+
+    // ============================================================
+    // INVITES
+    // ============================================================
+
+    match /invites/{inviteId} {
+
+      allow read: if signedIn()
+        && (
+          resource.data.invitedByUid == myUid()
+          || resource.data.invitedEmail == myEmail()
+        );
+
+      allow create: if signedIn()
+        && request.resource.data.invitedByUid == myUid()
+        && request.resource.data.status == "pending"
+        && request.resource.data.invitedEmail != myEmail()
+        && isSpaceMember(request.resource.data.spaceId)
+        && spaceDoc(request.resource.data.spaceId).data.memberUids.size() == 1;
+
+      allow update: if signedIn()
+        && (
+          (
+            resource.data.invitedEmail == myEmail()
+            && resource.data.status == "pending"
+            && request.resource.data.status == "accepted"
+            && request.resource.data.acceptedByUid == myUid()
+          )
+          ||
+          (
+            resource.data.invitedByUid == myUid()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "cancelledAt"])
+          )
+        );
+
+      allow delete: if signedIn()
+        && resource.data.invitedByUid == myUid();
+    }
+
+
+    // ============================================================
+    // LEGACY DATA — READ ONLY FOR MIGRATION
+    // ============================================================
+
+    match /coupleData/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+  }
+}
