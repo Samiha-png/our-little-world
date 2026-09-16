@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import GlassCard from "../components/GlassCard";
-import { listenDiaryEntries, saveDiaryEntry, todayKey } from "../services/data";
+import { listenDiaryEntries, saveDiaryEntry, savePrivateMood, setSharedMoodStatus, todayKey } from "../services/data";
 import "./Diary.css";
 
 const MOODS = ["😊", "😌", "😔", "😤", "🥹", "😴", "🤔", "🥰"];
@@ -30,9 +30,15 @@ export default function Diary({ ctx }) {
       setRemember(today.remember || "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries.length]);
+  }, [entries]);
 
   async function handleSave(e) {
+    if (mood) {
+      try {
+        await savePrivateMood(user.uid, dateStr, { mood });
+        await setSharedMoodStatus(ctx.spaceId, dateStr, user.uid, ctx.profile?.displayName || user.email.split('@')[0], { mood });
+      } catch (err) { console.error('Failed to sync mood', err); }
+    }
     e.preventDefault();
     await saveDiaryEntry(user.uid, dateStr, { mood, whatHappened, thinking, remember });
     setSaved(true);
