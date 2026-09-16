@@ -24,13 +24,13 @@
   gap: var(--space-2);
   margin-bottom: var(--space-4);
   background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   padding: 4px;
 }
 .auth-tabs button {
   flex: 1;
   padding: 9px 0;
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   font-size: 13px;
   color: var(--text-muted);
   transition: all var(--duration-fast) var(--ease-cinematic);
@@ -52,12 +52,12 @@
 .auth-submit {
   margin-top: var(--space-2);
   padding: 12px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--samiha-accent), var(--his-accent));
-  color: var(--cream-050);
+  border-radius: 13px;
+  background: linear-gradient(135deg, #c981a4, #e9a7c4); color: #1b1116;
+  
   font-weight: 500;
   letter-spacing: 0.02em;
-  box-shadow: var(--glow-rose);
+  box-shadow: 0 10px 30px rgba(233,167,196,0.14);
   transition: transform var(--duration-fast) var(--ease-cinematic), opacity var(--duration-fast);
 }
 .auth-submit:hover { transform: translateY(-1px); }

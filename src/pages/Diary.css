@@ -26,11 +26,11 @@
   align-self: flex-start;
   margin-top: var(--space-3);
   padding: 10px 24px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--samiha-accent), var(--his-accent));
-  color: var(--cream-050);
+  border-radius: 13px;
+  background: linear-gradient(135deg, #c981a4, #e9a7c4); color: #1b1116;
+  
   font-weight: 500;
-  box-shadow: var(--glow-rose);
+  box-shadow: 0 10px 30px rgba(233,167,196,0.14);
 }
 
 .diary-history-grid {

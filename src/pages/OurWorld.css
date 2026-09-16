@@ -242,13 +242,13 @@
 .note-form button {
   border: 0;
   padding: 9px 17px;
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   background: linear-gradient(
     135deg,
     var(--his-accent),
     var(--samiha-accent)
   );
-  color: var(--cream-050);
+  
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -435,7 +435,7 @@
 
 .connection-count {
   padding: 5px 9px;
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   background: rgba(255, 255, 255, 0.045);
   color: var(--rose-300);
   font-size: 11px;

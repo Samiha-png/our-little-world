@@ -11,12 +11,12 @@
 .memories-view-toggle {
   display: flex;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   padding: 3px;
 }
 .memories-view-toggle button {
   padding: 7px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -26,12 +26,12 @@
 }
 .memories-add {
   padding: 9px 18px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--samiha-accent), var(--his-accent));
-  color: var(--cream-050);
+  border-radius: 13px;
+  background: linear-gradient(135deg, #c981a4, #e9a7c4); color: #1b1116;
+  
   font-size: 13px;
   font-weight: 500;
-  box-shadow: var(--glow-rose);
+  box-shadow: 0 10px 30px rgba(233,167,196,0.14);
 }
 
 .memories-masonry {
@@ -57,8 +57,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--samiha-accent), var(--his-accent));
-  color: var(--cream-050);
+  background: linear-gradient(135deg, #c981a4, #e9a7c4); color: #1b1116;
+  
   font-family: var(--font-display);
   font-size: 2rem;
   border-radius: 2px;
@@ -133,9 +133,9 @@
 .memory-form button {
   margin-top: var(--space-2);
   padding: 10px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--samiha-accent), var(--his-accent));
-  color: var(--cream-050);
+  border-radius: 13px;
+  background: linear-gradient(135deg, #c981a4, #e9a7c4); color: #1b1116;
+  
   font-weight: 500;
 }
 

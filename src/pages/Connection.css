@@ -25,7 +25,7 @@
 }
 .connection-type-pill {
   padding: 7px 13px;
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   font-size: 12px;
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.03);
@@ -44,11 +44,11 @@
 .connection-send {
   align-self: flex-end;
   padding: 10px 26px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--samiha-accent), var(--his-accent));
-  color: var(--cream-050);
+  border-radius: 13px;
+  background: linear-gradient(135deg, #c981a4, #e9a7c4); color: #1b1116;
+  
   font-weight: 500;
-  box-shadow: var(--glow-rose);
+  box-shadow: 0 10px 30px rgba(233,167,196,0.14);
 }
 .connection-send:disabled { opacity: 0.5; box-shadow: none; }
 
