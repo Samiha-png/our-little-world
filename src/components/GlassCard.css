@@ -1,27 +1,27 @@
 .glass-card {
   position: relative;
-  background: var(--glass-fill);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   box-shadow: var(--shadow-card);
-  padding: var(--space-4);
+  padding: var(--space-5);
 }
 
 .glass-card-interactive {
   cursor: pointer;
-  transition: border-color var(--duration-fast) var(--ease-cinematic),
-    box-shadow var(--duration-med) var(--ease-cinematic);
+  transition: all var(--duration-fast) var(--ease-cinematic);
 }
 .glass-card-interactive:hover {
+  background: var(--bg-card-hover);
   border-color: var(--glass-border-glow);
 }
 
-.accent-samiha.glass-card-interactive:hover { box-shadow: var(--shadow-card), 0 0 44px -10px var(--samiha-glow); }
-.accent-him.glass-card-interactive:hover { box-shadow: var(--shadow-card), 0 0 44px -10px var(--his-glow); }
+.accent-samiha.glass-card-interactive:hover { box-shadow: var(--shadow-card), var(--glow-rose); }
+.accent-him.glass-card-interactive:hover { box-shadow: var(--shadow-card), var(--glow-rose); }
 .accent-shared.glass-card-interactive:hover { box-shadow: var(--shadow-card), var(--glow-rose); }
-.accent-gold.glass-card-interactive:hover { box-shadow: var(--shadow-card), var(--glow-gold); }
+.accent-gold.glass-card-interactive:hover { box-shadow: var(--shadow-card), var(--glow-rose); }
 
 @media (max-width: 720px) {
   .glass-card { padding: var(--space-3); border-radius: var(--radius-md); }

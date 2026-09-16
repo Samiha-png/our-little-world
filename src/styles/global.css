@@ -6,11 +6,40 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg-void);
+  background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+/* Add the romantic blurred background atmosphere globally */
+body::before {
+  content: "";
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  top: -100px;
+  left: -250px;
+  background: rgba(217, 154, 184, 0.05);
+  filter: blur(140px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  width: 550px;
+  height: 550px;
+  right: -200px;
+  bottom: -100px;
+  background: rgba(205, 177, 122, 0.04);
+  filter: blur(140px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
 }
 
 h1, h2, h3, h4 {
@@ -35,19 +64,20 @@ button {
 input, textarea, select {
   font-family: var(--font-body);
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  padding: 12px 16px;
   outline: none;
-  transition: border-color var(--duration-fast) var(--ease-cinematic);
+  transition: all var(--duration-fast) var(--ease-cinematic);
 }
 input:focus, textarea:focus, select:focus {
   border-color: var(--glass-border-glow);
-  box-shadow: 0 0 0 3px rgba(214, 141, 158, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 3px rgba(217, 154, 184, 0.1);
 }
 
-::selection { background: var(--samiha-glow); }
+::selection { background: rgba(217, 154, 184, 0.2); }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

@@ -44,10 +44,7 @@ export default function Diary({ ctx }) {
   return (
     <div className="page-container diary-page">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <p className="eyebrow">private · only you can see this</p>
-        <h1 className="editorial-heading">
-          Dear <em>today…</em>
-        </h1>
+        <p className="eyebrow">OUR LITTLE WORLD</p><h1 className="editorial-heading">Diary</h1><p className="subtitle" style={{ marginTop: "12px", fontSize: "1.1rem", color: "var(--text-secondary)", fontStyle: "italic", fontFamily: "var(--font-editorial)" }}>A quiet place for the things we want to remember.</p>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.6 }}>

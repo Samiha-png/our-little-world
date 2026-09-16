@@ -22,35 +22,7 @@
   overflow: hidden;
 }
 
-/* subtle background atmosphere */
 
-.today-page::before {
-  content: "";
-  position: fixed;
-  width: 520px;
-  height: 520px;
-  top: 80px;
-  left: -220px;
-  background: rgba(177, 72, 118, 0.12);
-  filter: blur(110px);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.today-page::after {
-  content: "";
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  right: -220px;
-  bottom: 0;
-  background: rgba(210, 173, 104, 0.08);
-  filter: blur(120px);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-}
 
 
 /* =========================================================

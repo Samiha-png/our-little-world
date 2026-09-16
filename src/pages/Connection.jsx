@@ -56,11 +56,7 @@ export default function Connection({ ctx }) {
   return (
     <div className="page-container connection-page">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <p className="eyebrow">a core feature of our world</p>
-        <h1 className="editorial-heading">
-          Between <em>Us</em>
-        </h1>
-        <p className="connection-subtitle">things we want each other to know</p>
+        <p className="eyebrow">OUR LITTLE WORLD</p><h1 className="editorial-heading">Connection</h1><p className="subtitle" style={{ marginTop: "12px", fontSize: "1.1rem", color: "var(--text-secondary)", fontStyle: "italic", fontFamily: "var(--font-editorial)", marginBottom: "32px" }}>A little space for us.</p>
       </motion.div>
 
       <div className="connection-grid">
