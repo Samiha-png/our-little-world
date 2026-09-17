@@ -1629,11 +1629,7 @@ export default function Today({ ctx }) {
       <AnimatePresence>
         {imHereOpen && (
           <motion.div
-<<<<<<< HEAD
             className="today-imhere-modal-backdrop"
-=======
-            className="memory-modal-backdrop"
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
             initial={{
               opacity: 0
             }}
@@ -1649,11 +1645,7 @@ export default function Today({ ctx }) {
             }
           >
             <motion.div
-<<<<<<< HEAD
               className="today-imhere-modal"
-=======
-              className="memory-modal"
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
               initial={{
                 scale: 0.9,
                 opacity: 0
@@ -1735,11 +1727,7 @@ export default function Today({ ctx }) {
               </div>
 
               <button
-<<<<<<< HEAD
                 className="today-support-save"
-=======
-                className="diary-save"
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
                 style={{
                   marginTop: 18
                 }}
@@ -1768,106 +1756,4 @@ export default function Today({ ctx }) {
 }
 
 /* =========================================================
-   SUPPORT RESPONDER
-========================================================= */
-
-function SupportResponder({
-  spaceId,
-  request
-}) {
-  const [text, setText] =
-    useState("");
-
-  const [busy, setBusy] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  if (request.response) {
-    return (
-      <p className="support-response">
-        You replied: “
-        {request.response}”
-      </p>
-    );
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    const response =
-      text.trim();
-
-    if (
-      !response ||
-      busy
-    ) {
-      return;
-    }
-
-    setBusy(true);
-    setError("");
-
-    try {
-      await respondToSupportRequest(
-        spaceId,
-        request.id,
-        response
-      );
-
-      setText("");
-    } catch (err) {
-      console.error(
-        "[Today] support response failed",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Couldn't send that reply."
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <>
-      <form
-        className="support-response-form"
-        onSubmit={handleSubmit}
-      >
-        <input
-          placeholder="Send a gentle reply…"
-          value={text}
-          onChange={(e) =>
-            setText(e.target.value)
-          }
-          disabled={busy}
-        />
-
-        <button
-          type="submit"
-          disabled={
-            busy ||
-            !text.trim()
-          }
-        >
-          {busy
-            ? "Sending…"
-            : "Send"}
-        </button>
-      </form>
-
-      {error && (
-        <p
-          className="today-task-error"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-    </>
-  );
-}
+   SUPPORT RESPONDER

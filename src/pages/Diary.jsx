@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import GlassCard from "../components/GlassCard";
-<<<<<<< HEAD
 
 import {
   listenDiaryEntries,
@@ -33,21 +32,10 @@ export default function Diary({ ctx }) {
   const [entries, setEntries] = useState([]);
   const [notes, setNotes] = useState([]);
 
-=======
-import { listenDiaryEntries, saveDiaryEntry, savePrivateMood, setSharedMoodStatus, todayKey } from "../services/data";
-import "./Diary.css";
-
-const MOODS = ["😊", "😌", "😔", "😤", "🥹", "😴", "🤔", "🥰"];
-
-export default function Diary({ ctx }) {
-  const { user } = ctx;
-  const [entries, setEntries] = useState([]);
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
   const [mood, setMood] = useState(null);
   const [whatHappened, setWhatHappened] = useState("");
   const [thinking, setThinking] = useState("");
   const [remember, setRemember] = useState("");
-<<<<<<< HEAD
 
   const [noteText, setNoteText] = useState("");
 
@@ -723,130 +711,10 @@ export default function Diary({ ctx }) {
             )}
           </div>
         </section>
-=======
-  const [saved, setSaved] = useState(false);
-  const dateStr = todayKey();
-
-  useEffect(() => {
-    const unsub = listenDiaryEntries(user.uid, setEntries);
-    return unsub;
-  }, [user.uid]);
-
-  useEffect(() => {
-    const today = entries.find((e) => e.id === dateStr);
-    if (today) {
-      setMood(today.mood || null);
-      setWhatHappened(today.whatHappened || "");
-      setThinking(today.thinking || "");
-      setRemember(today.remember || "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries]);
-
-  async function handleSave(e) {
-    if (mood) {
-      try {
-        await savePrivateMood(user.uid, dateStr, { mood });
-        await setSharedMoodStatus(ctx.spaceId, dateStr, user.uid, ctx.profile?.displayName || user.email.split('@')[0], { mood });
-      } catch (err) { console.error('Failed to sync mood', err); }
-    }
-    e.preventDefault();
-    await saveDiaryEntry(user.uid, dateStr, { mood, whatHappened, thinking, remember });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  const pastEntries = entries.filter((e) => e.id !== dateStr);
-
-  return (
-    <div className="page-container diary-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        <p className="eyebrow">OUR LITTLE WORLD</p><h1 className="editorial-heading">Diary</h1><p className="subtitle" style={{ marginTop: "12px", fontSize: "1.1rem", color: "var(--text-secondary)", fontStyle: "italic", fontFamily: "var(--font-editorial)" }}>A quiet place for the things we want to remember.</p>
-      </motion.div>
-
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.6 }}>
-        <GlassCard accent="samiha" className="diary-compose">
-          <div className="diary-moods">
-            {MOODS.map((m) => (
-              <button
-                key={m}
-                type="button"
-                className={"diary-mood" + (mood === m ? " is-active" : "")}
-                onClick={() => setMood(m)}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-          <form onSubmit={handleSave} className="diary-form">
-            <label className="diary-label">What happened today?</label>
-            <textarea rows={3} value={whatHappened} onChange={(e) => setWhatHappened(e.target.value)} />
-            <label className="diary-label">What am I thinking about?</label>
-            <textarea rows={3} value={thinking} onChange={(e) => setThinking(e.target.value)} />
-            <label className="diary-label">What do I want to remember?</label>
-            <textarea rows={2} value={remember} onChange={(e) => setRemember(e.target.value)} />
-            <button type="submit" className="diary-save">{saved ? "Saved ✓" : "Save entry"}</button>
-          </form>
-        </GlassCard>
-      </motion.div>
-
-      {pastEntries.length > 0 && (
-        <div className="diary-history">
-          <p className="eyebrow" style={{ margin: "var(--space-5) 0 var(--space-3)" }}>previous entries</p>
-          <div className="diary-history-grid">
-            {pastEntries.map((entry, i) => (
-              <motion.div key={entry.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <GlassCard accent="samiha" className="diary-entry-card">
-                  <div className="diary-entry-head">
-                    <span>{entry.mood}</span>
-                    <span className="diary-entry-date">{entry.date}</span>
-                  </div>
-                  {entry.whatHappened && <p className="diary-entry-text">{entry.whatHappened}</p>}
-                </GlassCard>
-              </motion.div>
-            ))}
-          </div>
-        </div>
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
       )}
     </div>
   );
 }
-<<<<<<< HEAD
 
 /* =========================
    NOTE DATE
-========================= */
-
-function formatNoteDate(value) {
-  if (!value) return "Just now";
-
-  try {
-    const date =
-      typeof value?.toDate ===
-      "function"
-        ? value.toDate()
-        : new Date(value);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return "Recently";
-    }
-
-    return date.toLocaleDateString(
-      undefined,
-      {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }
-    );
-  } catch {
-    return "Recently";
-  }
-}
-=======
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c

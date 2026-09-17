@@ -1,5 +1,4 @@
 /* =========================================================================
-<<<<<<< HEAD
    OUR LITTLE WORLD — design tokens.
    Deep charcoal / black base, burgundy + dark rose accents, soft cream text,
    a whisper of gold. Everything else in the app reads from these variables
@@ -50,40 +49,12 @@
   --text-secondary: rgba(246, 236, 228, 0.72);
   --text-muted: rgba(246, 236, 228, 0.48);
   --text-accent: var(--rose-300);
-=======
-   OUR LITTLE WORLD - Premium Dark Romantic Design Tokens
-   ========================================================================= */
-:root {
-  /* ---- base surfaces ---- */
-  --bg-primary: #09080B;
-  --bg-secondary: #100D12;
-  --bg-card: rgba(255, 255, 255, 0.045);
-  --bg-card-hover: rgba(255, 255, 255, 0.065);
-  --bg-card-strong: rgba(255, 255, 255, 0.08);
-
-  /* ---- borders ---- */
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --glass-border-glow: rgba(217, 154, 184, 0.35);
-
-  /* ---- palette ---- */
-  --rose: #D99AB8;
-  --rose-soft: #E8B8CC;
-  --rose-dark: #8D526E;
-  --gold: #CDB17A;
-
-  /* ---- text ---- */
-  --text-primary: #F7F2F5;
-  --text-secondary: #B8AEB5;
-  --text-muted: #756C74;
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
 
   /* ---- type ---- */
   --font-display: "Fraunces", "Cormorant Garamond", serif;
   --font-editorial: "Cormorant Garamond", serif;
   --font-body: "Karla", -apple-system, BlinkMacSystemFont, sans-serif;
 
-<<<<<<< HEAD
   /* ---- radii / spacing ---- */
   --radius-sm: 10px;
   --radius-md: 18px;
@@ -101,34 +72,11 @@
   --shadow-card: 0 18px 45px -18px rgba(0, 0, 0, 0.65);
   --glow-rose: 0 0 40px -6px rgba(214, 141, 158, 0.55);
   --glow-gold: 0 0 30px -6px rgba(207, 166, 107, 0.4);
-=======
-  /* ---- radii ---- */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-pill: 999px;
-
-  /* ---- spacing (4-point grid system) ---- */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
-
-  /* ---- shadow / glow ---- */
-  --shadow-cinematic: 0 20px 60px rgba(0,0,0,0.35);
-  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.25);
-  --glow-rose: 0 0 40px -6px rgba(217, 154, 184, 0.4);
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
 
   /* ---- motion ---- */
   --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 0.22s;
   --duration-med: 0.5s;
-<<<<<<< HEAD
   --duration-slow: 0.9s;
 }
 
@@ -136,10 +84,3 @@
    can lean subtly warmer (Samiha) or deeper (Him). */
 .app-shell.theme-him { --text-accent: var(--his-accent-soft); --glass-border-glow: rgba(156,43,60,.38); }
 .app-shell.theme-samiha { --text-accent: var(--samiha-accent-soft); --glass-border-glow: rgba(224,139,160,.38); }
-=======
-}
-
-/* Retain the dialect classes so existing app-shell switches don't break */
-.app-shell.theme-him { --text-accent: var(--rose-dark); --glass-border-glow: rgba(141,82,110,0.38); }
-.app-shell.theme-samiha { --text-accent: var(--rose-soft); --glass-border-glow: rgba(232,184,204,0.38); }
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c

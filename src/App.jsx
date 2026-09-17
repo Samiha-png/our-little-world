@@ -6,10 +6,7 @@ import { useSpace } from "./hooks/useSpace";
 import AnimatedBackground from "./components/AnimatedBackground";
 import FloatingNav from "./components/FloatingNav";
 import PageTransition from "./components/PageTransition";
-<<<<<<< HEAD
 import PlayTogether from "./pages/PlayTogether";
-=======
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
 
 import Auth from "./pages/Auth";
 import SpaceGate from "./pages/SpaceGate";
@@ -101,10 +98,7 @@ export default function App() {
           <Route path="/memories" element={<PageTransition><Memories ctx={ctx} /></PageTransition>} />
           <Route path="/our-world" element={<PageTransition><OurWorld ctx={ctx} /></PageTransition>} />
           <Route path="/my-space" element={<PageTransition><MySpace ctx={ctx} /></PageTransition>} />
-<<<<<<< HEAD
           <Route path="/play-together" element={<PlayTogether />} />
-=======
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
           <Route path="/settings" element={<PageTransition><Settings ctx={ctx} /></PageTransition>} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>

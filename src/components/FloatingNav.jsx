@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-=======
-import { NavLink } from "react-router-dom";
-import { motion } from "framer-motion";
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
 import "./FloatingNav.css";
 
 const LINKS = [
@@ -16,7 +11,6 @@ const LINKS = [
   { to: "/memories", label: "Memories", icon: "❈" },
   { to: "/our-world", label: "Our World", icon: "✦" },
   { to: "/my-space", label: "My Space", icon: "♡" },
-<<<<<<< HEAD
   { to: "/play-together", label: "Play Together", icon: "🎮" },
   { to: "/settings", label: "Settings", icon: "⚙" },
 ];
@@ -66,21 +60,10 @@ export default function FloatingNav({ avatarLabel }) {
           DESKTOP NAVIGATION
       ===================================================== */}
 
-=======
-  { to: "/settings", label: "Settings", icon: "⚙" }
-];
-
-const MOBILE_LINKS = [LINKS[0], LINKS[1], LINKS[3], LINKS[4], LINKS[6]];
-
-export default function FloatingNav({ avatarLabel }) {
-  return (
-    <>
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
       <motion.nav
         className="floating-nav floating-nav-desktop"
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-<<<<<<< HEAD
         transition={{
           duration: 0.6,
           ease: [0.16, 1, 0.3, 1],
@@ -96,14 +79,6 @@ export default function FloatingNav({ avatarLabel }) {
         </NavLink>
 
         {/* Desktop Links */}
-=======
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <NavLink to="/home" className="floating-nav-mark" aria-label="Home">
-          ✦
-        </NavLink>
-
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
         <div className="floating-nav-links">
           {LINKS.map((link) => (
             <NavLink
@@ -118,23 +93,16 @@ export default function FloatingNav({ avatarLabel }) {
           ))}
         </div>
 
-<<<<<<< HEAD
         {/* Avatar / Settings */}
         <NavLink
           to="/settings"
           className="floating-nav-avatar"
-=======
-        <NavLink
-          className="floating-nav-avatar"
-          to="/settings"
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
           aria-label="Open settings"
         >
           {avatarLabel || "•"}
         </NavLink>
       </motion.nav>
 
-<<<<<<< HEAD
       {/* =====================================================
           MOBILE NAVIGATION
       ===================================================== */}
@@ -147,20 +115,12 @@ export default function FloatingNav({ avatarLabel }) {
           duration: 0.5,
           ease: [0.16, 1, 0.3, 1],
         }}
-=======
-      <motion.nav
-        className="floating-nav floating-nav-mobile"
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
       >
         {MOBILE_LINKS.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-<<<<<<< HEAD
               `floating-nav-mobile-link${
                 isActive ? " is-active" : ""
               }`
@@ -284,16 +244,6 @@ export default function FloatingNav({ avatarLabel }) {
           </>
         )}
       </AnimatePresence>
-=======
-              `floating-nav-mobile-link${isActive ? " is-active" : ""}`
-            }
-          >
-            <span className="floating-nav-mobile-icon">{link.icon}</span>
-            <span className="floating-nav-mobile-label">{link.label}</span>
-          </NavLink>
-        ))}
-      </motion.nav>
->>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
     </>
   );
 }
