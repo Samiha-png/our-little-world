@@ -242,13 +242,21 @@
 .note-form button {
   border: 0;
   padding: 9px 17px;
+<<<<<<< HEAD
+  border-radius: var(--radius-pill);
+=======
   border-radius: 13px;
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
   background: linear-gradient(
     135deg,
     var(--his-accent),
     var(--samiha-accent)
   );
+<<<<<<< HEAD
+  color: var(--cream-050);
+=======
   
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -435,7 +443,11 @@
 
 .connection-count {
   padding: 5px 9px;
+<<<<<<< HEAD
+  border-radius: var(--radius-pill);
+=======
   border-radius: 13px;
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
   background: rgba(255, 255, 255, 0.045);
   color: var(--rose-300);
   font-size: 11px;
@@ -862,4 +874,380 @@
   .today-total strong {
     font-size: 1.7rem;
   }
+<<<<<<< HEAD
+}
+
+/* =========================================================
+   OUR WORLD — PREMIUM CONNECTION SECTION
+========================================================= */
+
+.world-connection-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* subtle cinematic glow */
+.world-connection-card::before {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  top: -90px;
+  right: -70px;
+  border-radius: 50%;
+  background: rgba(226, 170, 115, 0.09);
+  filter: blur(45px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.world-connection-card::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  bottom: -90px;
+  left: -60px;
+  border-radius: 50%;
+  background: rgba(220, 120, 150, 0.07);
+  filter: blur(45px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* header */
+
+.world-connection-card .world-card-header {
+  position: relative;
+  z-index: 2;
+}
+
+.world-connection-card .eyebrow {
+  margin-bottom: 5px;
+}
+
+.world-connection-card .world-card-header h3 {
+  max-width: 260px;
+  font-size: 22px;
+  line-height: 1.18;
+}
+
+.world-connection-card .world-card-header h3 em {
+  font-family: var(--font-editorial);
+  font-weight: 400;
+}
+
+.world-connection-count {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--rose-300);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* =========================================================
+   ENTRIES WRAPPER
+========================================================= */
+
+.world-connection-entries {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 22px;
+}
+
+/* vertical timeline */
+
+.world-connection-entries::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 16px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.025)
+  );
+  pointer-events: none;
+}
+
+/* =========================================================
+   PERSON ENTRY
+========================================================= */
+
+.world-connection-entry {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px 13px;
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.018)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 10px 30px rgba(0, 0, 0, 0.08);
+
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease;
+}
+
+.world-connection-entry:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(255, 255, 255, 0.11);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+/* =========================================================
+   AVATAR
+========================================================= */
+
+.world-connection-avatar {
+  position: relative;
+  z-index: 2;
+
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(225, 145, 165, 0.22),
+      rgba(255, 255, 255, 0.055)
+    );
+
+  border: 1px solid rgba(255, 190, 205, 0.16);
+
+  color: var(--text-primary);
+
+  font-size: 11px;
+  font-weight: 600;
+
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.012),
+    0 5px 18px rgba(0, 0, 0, 0.18);
+}
+
+.world-connection-avatar::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: var(--rose-300);
+
+  border: 2px solid rgba(20, 14, 17, 0.95);
+
+  box-shadow:
+    0 0 10px rgba(255, 130, 155, 0.45);
+}
+
+.world-partner-avatar {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(215, 165, 105, 0.18),
+      rgba(255, 255, 255, 0.045)
+    );
+
+  border-color: rgba(225, 185, 130, 0.15);
+}
+
+.world-partner-avatar::after {
+  background: var(--his-accent);
+
+  box-shadow:
+    0 0 10px rgba(220, 175, 110, 0.38);
+}
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.world-connection-content {
+  min-width: 0;
+  flex: 1;
+  padding-top: 1px;
+}
+
+.world-connection-content strong {
+  display: block;
+
+  color: var(--text-primary);
+
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.world-connection-content > span {
+  display: inline-flex;
+  align-items: center;
+
+  margin-top: 3px;
+
+  color: var(--rose-300);
+
+  font-size: 7px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.world-connection-content p {
+  margin: 7px 0 0;
+
+  color: var(--text-secondary);
+
+  font-family: var(--font-editorial);
+  font-size: 12px;
+  line-height: 1.55;
+
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.world-connection-empty {
+  position: relative;
+
+  width: 100%;
+  min-height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  padding: 15px;
+
+  text-align: center;
+
+  border: 1px dashed rgba(255, 255, 255, 0.085);
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.world-connection-empty > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 27px;
+  height: 27px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  color: var(--rose-300);
+
+  font-size: 14px;
+}
+
+.world-connection-empty p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-family: var(--font-editorial);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 600px) {
+  .world-connection-card .world-card-header h3 {
+    font-size: 19px;
+  }
+
+  .world-connection-entries {
+    margin-top: 18px;
+  }
+
+  .world-connection-entry {
+    padding: 11px;
+  }
+
+  .world-connection-avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .world-connection-content p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .world-connection-entry {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .world-connection-avatar {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .world-connection-content strong {
+    font-size: 10px;
+  }
+
+  .world-connection-content p {
+    font-size: 10px;
+  }
+=======
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
 }

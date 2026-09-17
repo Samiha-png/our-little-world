@@ -1629,7 +1629,11 @@ export default function Today({ ctx }) {
       <AnimatePresence>
         {imHereOpen && (
           <motion.div
+<<<<<<< HEAD
+            className="today-imhere-modal-backdrop"
+=======
             className="memory-modal-backdrop"
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
             initial={{
               opacity: 0
             }}
@@ -1645,7 +1649,11 @@ export default function Today({ ctx }) {
             }
           >
             <motion.div
+<<<<<<< HEAD
+              className="today-imhere-modal"
+=======
               className="memory-modal"
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
               initial={{
                 scale: 0.9,
                 opacity: 0
@@ -1727,7 +1735,11 @@ export default function Today({ ctx }) {
               </div>
 
               <button
+<<<<<<< HEAD
+                className="today-support-save"
+=======
                 className="diary-save"
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
                 style={{
                   marginTop: 18
                 }}

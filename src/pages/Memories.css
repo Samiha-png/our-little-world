@@ -1,3 +1,1333 @@
+<<<<<<< HEAD
+/* =========================================================
+   MEMORY VAULT
+   Completely isolated styling
+   ========================================================= */
+
+.memory-vault-page {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 108px 24px 120px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Background atmosphere */
+
+.memory-vault-page::before {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  left: -280px;
+  top: 100px;
+  border-radius: 50%;
+  background: rgba(244, 114, 140, 0.065);
+  filter: blur(110px);
+  pointer-events: none;
+}
+
+.memory-vault-page::after {
+  content: "";
+  position: absolute;
+  width: 430px;
+  height: 430px;
+  right: -230px;
+  bottom: 100px;
+  border-radius: 50%;
+  background: rgba(186, 130, 255, 0.045);
+  filter: blur(110px);
+  pointer-events: none;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.memory-vault-header {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  margin-bottom: 30px;
+}
+
+.memory-vault-eyebrow {
+  margin: 0 0 10px;
+
+  color: var(--rose-300);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.memory-vault-title {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-family: var(--font-editorial);
+
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 500;
+
+  line-height: 0.94;
+
+  letter-spacing: -0.055em;
+}
+
+.memory-vault-title em {
+  color: var(--rose-300);
+  font-weight: 400;
+}
+
+.memory-vault-subtitle {
+  margin: 14px 0 0;
+
+  color: var(--text-secondary);
+
+  font-family: var(--font-editorial);
+  font-size: 15px;
+  font-style: italic;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.memory-vault-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
+.memory-vault-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+
+  padding: 4px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.memory-vault-view-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 9px 12px;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: transparent;
+
+  color: var(--text-muted);
+
+  font-family: inherit;
+  font-size: 9px;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.memory-vault-view-toggle button span {
+  font-size: 12px;
+}
+
+.memory-vault-view-toggle button:hover {
+  color: var(--text-primary);
+}
+
+.memory-vault-view-toggle
+.memory-vault-toggle-active {
+  color: #fff;
+
+  background: rgba(244, 114, 140, 0.12);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(244, 114, 140, 0.14);
+}
+
+.memory-vault-add {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 11px 15px;
+
+  border: 1px solid rgba(244, 114, 140, 0.25);
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(244, 114, 140, 0.18),
+      rgba(244, 114, 140, 0.07)
+    );
+
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.memory-vault-add span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.memory-vault-add:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(244, 114, 140, 0.4);
+
+  box-shadow:
+    0 12px 30px
+    rgba(244, 114, 140, 0.1);
+}
+
+/* =========================================================
+   META
+   ========================================================= */
+
+.memory-vault-meta {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 30px;
+
+  color: var(--text-muted);
+
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.memory-vault-meta-line {
+  width: 45px;
+  height: 1px;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.memory-vault-meta-heart {
+  color: var(--rose-300);
+  font-size: 14px;
+}
+
+/* =========================================================
+   POLAROID GRID
+   ========================================================= */
+
+.memory-vault-grid {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 22px;
+
+  align-items: start;
+}
+
+/* =========================================================
+   POLAROID
+   ========================================================= */
+
+.memory-vault-polaroid {
+  position: relative;
+
+  min-width: 0;
+
+  padding: 10px 10px 15px;
+
+  border-radius: 3px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(244, 239, 239, 0.84)
+    );
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.22),
+    0 3px 8px rgba(0, 0, 0, 0.15);
+
+  cursor: pointer;
+
+  transition:
+    box-shadow 0.3s ease;
+}
+
+.memory-vault-polaroid:nth-child(3n) {
+  transform: rotate(-1.8deg);
+}
+
+.memory-vault-polaroid:nth-child(3n + 1) {
+  transform: rotate(1.3deg);
+}
+
+.memory-vault-polaroid:hover {
+  box-shadow:
+    0 30px 55px rgba(0, 0, 0, 0.28);
+}
+
+.memory-vault-photo {
+  position: relative;
+
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(48, 42, 47, 0.9),
+      rgba(20, 17, 21, 0.95)
+    );
+}
+
+.memory-vault-photo img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition:
+    transform 0.5s ease;
+}
+
+.memory-vault-polaroid:hover
+.memory-vault-photo img {
+  transform: scale(1.04);
+}
+
+.memory-vault-photo-shine {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.13),
+      transparent 35%
+    );
+
+  pointer-events: none;
+}
+
+.memory-vault-photo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.memory-vault-photo-empty span {
+  font-family: var(--font-editorial);
+  font-size: 54px;
+  font-style: italic;
+}
+
+.memory-vault-photo-empty small {
+  margin-top: 4px;
+
+  color: rgba(255, 255, 255, 0.35);
+
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   POLAROID INFO
+   ========================================================= */
+
+.memory-vault-polaroid-info {
+  padding: 13px 5px 0;
+}
+
+.memory-vault-polaroid-title {
+  margin: 0;
+
+  color: #282229;
+
+  font-family: var(--font-editorial);
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.memory-vault-polaroid-caption {
+  margin: 5px 0 0;
+
+  color: #746b71;
+
+  font-family: var(--font-editorial);
+
+  font-size: 11px;
+  font-style: italic;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.memory-vault-polaroid-bottom {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 10px;
+
+  color: #968b91;
+
+  font-size: 8px;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.memory-vault-polaroid-bottom span:last-child {
+  color: #c98294;
+  font-size: 13px;
+}
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
+.memory-vault-empty {
+  grid-column: 1 / -1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 330px;
+
+  padding: 40px;
+
+  text-align: center;
+
+  border: 1px dashed rgba(255, 255, 255, 0.09);
+  border-radius: 28px;
+
+  background:
+    rgba(255, 255, 255, 0.018);
+}
+
+.memory-vault-empty-icon {
+  display: grid;
+  place-items: center;
+
+  width: 60px;
+  height: 60px;
+
+  margin-bottom: 18px;
+
+  border-radius: 50%;
+
+  background: rgba(244, 114, 140, 0.07);
+
+  color: var(--rose-300);
+
+  font-size: 24px;
+}
+
+.memory-vault-empty h3 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-family: var(--font-editorial);
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.memory-vault-empty p {
+  margin: 8px 0 20px;
+
+  color: var(--text-muted);
+
+  font-family: var(--font-editorial);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.memory-vault-empty button {
+  padding: 10px 16px;
+
+  border: 1px solid rgba(244, 114, 140, 0.22);
+  border-radius: 999px;
+
+  background: rgba(244, 114, 140, 0.08);
+
+  color: var(--rose-300);
+
+  font-family: inherit;
+  font-size: 10px;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   TIMELINE
+   ========================================================= */
+
+.memory-vault-timeline {
+  position: relative;
+  z-index: 2;
+
+  width: min(850px, 100%);
+
+  margin: 0 auto;
+  padding: 10px 0 30px;
+}
+
+.memory-vault-timeline::before {
+  content: "";
+
+  position: absolute;
+
+  left: 8px;
+  top: 20px;
+  bottom: 20px;
+
+  width: 1px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(244, 114, 140, 0.25),
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+}
+
+.memory-vault-timeline-item {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns: 18px minmax(0, 1fr);
+
+  gap: 22px;
+
+  margin-bottom: 22px;
+}
+
+.memory-vault-timeline-marker {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  justify-content: center;
+
+  padding-top: 20px;
+}
+
+.memory-vault-timeline-marker span {
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: var(--rose-300);
+
+  box-shadow:
+    0 0 0 5px rgba(244, 114, 140, 0.07),
+    0 0 18px rgba(244, 114, 140, 0.2);
+}
+
+.memory-vault-timeline-card {
+  padding: 22px;
+
+  border-radius: 22px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.15);
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+.memory-vault-timeline-card:hover {
+  transform: translateX(4px);
+
+  border-color:
+    rgba(244, 114, 140, 0.18);
+}
+
+.memory-vault-timeline-date {
+  margin-bottom: 14px;
+
+  color: var(--rose-300);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.memory-vault-timeline-main {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 18px;
+}
+
+.memory-vault-timeline-main img {
+  flex: 0 0 100px;
+
+  width: 100px;
+  height: 100px;
+
+  object-fit: cover;
+
+  border-radius: 13px;
+}
+
+.memory-vault-timeline-main h3 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-family: var(--font-editorial);
+
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.memory-vault-timeline-main p {
+  margin: 7px 0 0;
+
+  color: var(--rose-300);
+
+  font-family: var(--font-editorial);
+
+  font-size: 12px;
+  font-style: italic;
+}
+
+.memory-vault-timeline-main span {
+  display: block;
+
+  margin-top: 10px;
+
+  color: var(--text-secondary);
+
+  font-family: var(--font-editorial);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+
+.memory-vault-modal-backdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 999;
+
+  display: grid;
+  place-items: center;
+
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  background:
+    rgba(6, 5, 7, 0.78);
+
+  backdrop-filter: blur(14px);
+
+  overflow-y: auto;
+}
+
+.memory-vault-modal {
+  position: relative;
+
+  width: min(650px, 100%);
+
+  max-height: calc(100vh - 48px);
+
+  overflow-y: auto;
+
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(39, 32, 39, 0.98),
+      rgba(20, 17, 21, 0.98)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.5);
+
+  scrollbar-width: thin;
+}
+
+.memory-vault-modal-close {
+  position: absolute;
+
+  z-index: 5;
+
+  top: 15px;
+  right: 15px;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+
+  background: rgba(0, 0, 0, 0.35);
+
+  color: #fff;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+.memory-vault-modal-image {
+  width: 100%;
+  max-height: 430px;
+
+  overflow: hidden;
+}
+
+.memory-vault-modal-image img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+  max-height: 430px;
+
+  object-fit: cover;
+}
+
+.memory-vault-modal-content {
+  padding: 28px;
+}
+
+.memory-vault-modal-eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--rose-300);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.2em;
+}
+
+.memory-vault-modal-content h2 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-family: var(--font-editorial);
+
+  font-size: 34px;
+  font-weight: 500;
+
+  letter-spacing: -0.03em;
+}
+
+.memory-vault-modal-date {
+  margin: 8px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.memory-vault-modal-caption {
+  margin: 20px 0 0;
+
+  color: var(--rose-300);
+
+  font-family: var(--font-editorial);
+
+  font-size: 16px;
+  font-style: italic;
+}
+
+.memory-vault-modal-text {
+  margin: 18px 0 0;
+
+  color: var(--text-secondary);
+
+  font-family: var(--font-editorial);
+
+  font-size: 16px;
+  line-height: 1.75;
+
+  white-space: pre-wrap;
+}
+
+.memory-vault-modal-reactions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-top: 25px;
+  padding-top: 18px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.memory-vault-modal-reactions > span {
+  color: var(--text-muted);
+
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.memory-vault-modal-reactions > div {
+  display: flex;
+  gap: 6px;
+}
+
+.memory-vault-modal-reactions button {
+  display: grid;
+  place-items: center;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.memory-vault-modal-reactions button:hover,
+.memory-vault-modal-reactions
+.memory-vault-reaction-picked {
+  background: rgba(244, 114, 140, 0.12);
+
+  border-color:
+    rgba(244, 114, 140, 0.3);
+
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   ADD MEMORY MODAL
+   ========================================================= */
+
+.memory-vault-add-modal {
+  width: min(560px, 100%);
+
+  padding: 28px;
+
+  box-sizing: border-box;
+
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(38, 31, 38, 0.98),
+      rgba(19, 16, 21, 0.98)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.5);
+}
+
+.memory-vault-add-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 24px;
+}
+
+.memory-vault-add-header p {
+  margin: 0 0 7px;
+
+  color: var(--rose-300);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.2em;
+}
+
+.memory-vault-add-header h2 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-family: var(--font-editorial);
+
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.memory-vault-add-header span {
+  display: block;
+
+  margin-top: 6px;
+
+  color: var(--text-muted);
+
+  font-family: var(--font-editorial);
+
+  font-size: 12px;
+  font-style: italic;
+}
+
+.memory-vault-add-header button {
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  color: var(--text-primary);
+
+  font-size: 19px;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.memory-vault-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.memory-vault-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.memory-vault-form label > span {
+  color: var(--text-muted);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.memory-vault-form input,
+.memory-vault-form textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 13px 15px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+
+  outline: none;
+
+  background: rgba(0, 0, 0, 0.17);
+
+  color: var(--text-primary);
+
+  font-family: inherit;
+  font-size: 12px;
+
+  transition: 0.25s ease;
+}
+
+.memory-vault-form textarea {
+  resize: vertical;
+
+  min-height: 110px;
+
+  font-family: var(--font-editorial);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.memory-vault-form input:focus,
+.memory-vault-form textarea:focus {
+  border-color:
+    rgba(244, 114, 140, 0.3);
+
+  background: rgba(0, 0, 0, 0.22);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(244, 114, 140, 0.035);
+}
+
+.memory-vault-form input::placeholder,
+.memory-vault-form textarea::placeholder {
+  color: var(--text-muted);
+
+  opacity: 0.65;
+}
+
+/* File */
+
+.memory-vault-file-box {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  min-height: 48px;
+
+  padding: 0 15px;
+
+  overflow: hidden;
+
+  border: 1px dashed rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+
+  background: rgba(0, 0, 0, 0.13);
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+}
+
+.memory-vault-file-box input {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  opacity: 0;
+
+  cursor: pointer;
+}
+
+/* Save */
+
+.memory-vault-save {
+  width: 100%;
+
+  margin-top: 4px;
+
+  padding: 14px 18px;
+
+  border: 1px solid rgba(244, 114, 140, 0.27);
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(244, 114, 140, 0.2),
+      rgba(244, 114, 140, 0.08)
+    );
+
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.memory-vault-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  border-color:
+    rgba(244, 114, 140, 0.4);
+
+  box-shadow:
+    0 14px 35px
+    rgba(244, 114, 140, 0.1);
+}
+
+.memory-vault-save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+  .memory-vault-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .memory-vault-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .memory-vault-page {
+    padding:
+      88px
+      16px
+      100px;
+  }
+
+  .memory-vault-title {
+    font-size: 3.1rem;
+  }
+
+  .memory-vault-subtitle {
+    font-size: 13px;
+  }
+
+  .memory-vault-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .memory-vault-view-toggle {
+    flex: 1;
+  }
+
+  .memory-vault-view-toggle button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .memory-vault-add {
+    justify-content: center;
+  }
+
+  .memory-vault-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+  }
+
+  .memory-vault-polaroid {
+    padding: 8px 8px 12px;
+  }
+
+  .memory-vault-polaroid-title {
+    font-size: 13px;
+  }
+
+  .memory-vault-polaroid-caption {
+    font-size: 10px;
+  }
+
+  .memory-vault-timeline-main {
+    gap: 12px;
+  }
+
+  .memory-vault-timeline-main img {
+    flex-basis: 75px;
+
+    width: 75px;
+    height: 75px;
+  }
+
+  .memory-vault-timeline-main h3 {
+    font-size: 20px;
+  }
+
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 440px) {
+
+  .memory-vault-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .memory-vault-title {
+    font-size: 2.65rem;
+  }
+
+  .memory-vault-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .memory-vault-add {
+    width: 100%;
+  }
+
+  .memory-vault-grid {
+    gap: 12px;
+  }
+
+  .memory-vault-polaroid-info {
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+  .memory-vault-polaroid-title {
+    font-size: 12px;
+  }
+
+  .memory-vault-polaroid-caption {
+    display: none;
+  }
+
+  .memory-vault-timeline {
+    padding-left: 0;
+  }
+
+  .memory-vault-timeline-item {
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .memory-vault-timeline-card {
+    padding: 17px;
+  }
+
+  .memory-vault-timeline-main {
+    display: block;
+  }
+
+  .memory-vault-timeline-main img {
+    width: 100%;
+    height: 160px;
+
+    margin-bottom: 13px;
+  }
+
+  .memory-vault-modal-backdrop {
+    padding: 12px;
+  }
+
+  .memory-vault-modal-content {
+    padding: 21px;
+  }
+
+  .memory-vault-modal-content h2 {
+    font-size: 28px;
+  }
+
+  .memory-vault-modal-reactions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .memory-vault-add-modal {
+    padding: 21px;
+    border-radius: 23px;
+  }
+
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .memory-vault-page * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+}
+=======
 .memories-page { padding-top: 120px; }
 .memories-header {
   display: flex;
@@ -142,3 +1472,4 @@
 @media (max-width: 720px) {
   .memories-page { padding-top: 40px; }
 }
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c

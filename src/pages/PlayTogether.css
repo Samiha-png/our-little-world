@@ -1,0 +1,1164 @@
+
+/* =========================================================
+   PLAY TOGETHER
+   OUR LITTLE WORLD THEME
+========================================================= */
+
+.play-together-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  isolation: isolate;
+  padding: 108px 28px 145px;
+
+  color: #f5e9ee;
+
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(198, 92, 125, 0.13),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 88% 78%,
+      rgba(182, 145, 87, 0.07),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #0d090d 0%,
+      #160d13 48%,
+      #0c080c 100%
+    );
+}
+
+.play-together-page *,
+.play-together-page *::before,
+.play-together-page *::after {
+  box-sizing: border-box;
+}
+
+.play-together-page button,
+.play-together-page textarea {
+  font: inherit;
+}
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.play-together-bg-glow {
+  position: fixed;
+  width: 430px;
+  height: 430px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  opacity: 0.2;
+  z-index: -1;
+}
+
+.play-together-bg-glow-one {
+  top: 5%;
+  left: -210px;
+  background: rgba(210, 93, 130, 0.35);
+}
+
+.play-together-bg-glow-two {
+  right: -200px;
+  bottom: 4%;
+  background: rgba(190, 151, 91, 0.18);
+}
+
+/* =========================================================
+   SHELL
+========================================================= */
+
+.play-together-shell {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.play-together-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 35px;
+  margin-bottom: 40px;
+}
+
+.play-together-eyebrow,
+.play-together-modal-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 13px;
+
+  color: #b998a5;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.23em;
+  text-transform: uppercase;
+}
+
+.play-together-title {
+  margin: 0;
+
+  color: #fff6f9;
+
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+  font-weight: 700;
+}
+
+.play-together-title span {
+  color: #dfa1b7;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.play-together-subtitle {
+  max-width: 500px;
+  margin: 17px 0 0;
+
+  color: #93858d;
+
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+/* =========================================================
+   ORBIT
+========================================================= */
+
+.play-together-header-orbit {
+  position: relative;
+
+  width: 116px;
+  height: 116px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  box-shadow:
+    inset 0 0 45px rgba(255, 255, 255, 0.025),
+    0 25px 70px rgba(0, 0, 0, 0.3);
+}
+
+.play-together-header-orbit::before {
+  content: "";
+
+  position: absolute;
+  inset: 10px;
+
+  border: 1px dashed rgba(222, 151, 176, 0.2);
+  border-radius: 50%;
+}
+
+.play-together-header-orbit span {
+  position: absolute;
+
+  color: #d79caf;
+  font-size: 16px;
+}
+
+.play-together-header-orbit span:nth-child(1) {
+  top: 20px;
+  left: 26px;
+}
+
+.play-together-header-orbit span:nth-child(2) {
+  color: #d2b87e;
+  font-size: 10px;
+}
+
+.play-together-header-orbit span:nth-child(3) {
+  right: 23px;
+  bottom: 20px;
+  color: #9f8992;
+}
+
+/* =========================================================
+   INTRO
+========================================================= */
+
+.play-together-intro {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  padding: 23px 26px;
+  margin-bottom: 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 23px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.015)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 25px 65px rgba(0, 0, 0, 0.22);
+
+  backdrop-filter: blur(22px);
+}
+
+.play-together-intro-icon {
+  width: 55px;
+  height: 55px;
+  flex: 0 0 55px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(220, 153, 176, 0.18);
+  border-radius: 17px;
+
+  background: rgba(207, 94, 132, 0.07);
+
+  color: #dfadbd;
+  font-size: 21px;
+}
+
+.play-together-intro-label {
+  margin: 0 0 5px;
+
+  color: #a68d97;
+
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.play-together-intro h2 {
+  margin: 0;
+
+  color: #f9eef2;
+  font-size: 17px;
+}
+
+.play-together-intro p:last-child {
+  margin: 5px 0 0;
+
+  color: #8e8188;
+  font-size: 11px;
+}
+
+/* =========================================================
+   GAME CARDS
+========================================================= */
+
+.play-together-games {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.play-together-game-card {
+  position: relative;
+
+  min-height: 250px;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px;
+
+  overflow: hidden;
+
+  text-align: left;
+
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 25px;
+
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(211, 118, 149, 0.075),
+      transparent 37%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.052),
+      rgba(255, 255, 255, 0.015)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 22px 60px rgba(0, 0, 0, 0.23);
+
+  color: inherit;
+  cursor: pointer;
+
+  backdrop-filter: blur(20px);
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.play-together-game-card::after {
+  content: "";
+
+  position: absolute;
+  right: -75px;
+  bottom: -85px;
+
+  width: 150px;
+  height: 150px;
+
+  border-radius: 50%;
+
+  background: rgba(215, 145, 170, 0.07);
+  filter: blur(35px);
+
+  pointer-events: none;
+}
+
+.play-together-game-card:hover {
+  border-color: rgba(223, 156, 180, 0.22);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 30px 75px rgba(0, 0, 0, 0.32);
+}
+
+.play-together-game-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.play-together-game-icon {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(222, 155, 179, 0.15);
+  border-radius: 15px;
+
+  background: rgba(211, 98, 137, 0.055);
+
+  color: #dba4b7;
+  font-size: 20px;
+}
+
+.play-together-game-tag {
+  padding: 6px 9px;
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.02);
+
+  color: #8d8087;
+
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.play-together-game-content {
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.play-together-game-content h3 {
+  margin: 0;
+
+  color: #f7edf1;
+
+  font-size: 21px;
+  letter-spacing: -0.025em;
+}
+
+.play-together-game-content p {
+  max-width: 350px;
+  margin: 7px 0 0;
+
+  color: #91848c;
+
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.play-together-game-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 21px;
+
+  color: #c89aaa;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.play-together-arrow {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 50%;
+
+  color: #dba7b8;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.play-together-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+
+  margin-top: 32px;
+
+  color: #6f646b;
+
+  text-align: center;
+  font-size: 10px;
+}
+
+.play-together-footer-note span {
+  color: #aa7185;
+}
+
+.play-together-footer-note p {
+  margin: 0;
+}
+
+.play-together-footer-note strong {
+  color: #927d86;
+  font-weight: 600;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.play-together-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 22px;
+
+  overflow-y: auto;
+
+  background: rgba(4, 2, 5, 0.79);
+
+  backdrop-filter: blur(15px);
+}
+
+.play-together-modal {
+  width: min(620px, 100%);
+  max-height: calc(100vh - 44px);
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 27px;
+
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(213, 105, 139, 0.09),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(29, 17, 25, 0.98),
+      rgba(13, 9, 13, 0.99)
+    );
+
+  box-shadow:
+    0 45px 120px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.play-together-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 27px 28px 21px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.play-together-modal-header h2 {
+  margin: 0;
+
+  color: #fff3f7;
+
+  font-size: 26px;
+  letter-spacing: -0.035em;
+}
+
+.play-together-modal-header p {
+  margin: 6px 0 0;
+
+  color: #8f8289;
+
+  font-size: 11px;
+}
+
+.play-together-modal-close {
+  width: 35px;
+  height: 35px;
+  flex: 0 0 35px;
+
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  color: #b9aab1;
+  font-size: 21px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.play-together-modal-close:hover {
+  background: rgba(211, 100, 139, 0.1);
+  color: #e5b3c3;
+}
+
+.play-together-modal-body {
+  padding: 28px;
+}
+
+/* =========================================================
+   COMMON BUTTON
+========================================================= */
+
+.play-together-primary-button {
+  width: 100%;
+  min-height: 45px;
+
+  margin-top: 22px;
+
+  border: 1px solid rgba(221, 155, 179, 0.17);
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(210, 99, 137, 0.16),
+      rgba(210, 99, 137, 0.055)
+    );
+
+  color: #e0b1c0;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.play-together-primary-button:hover {
+  border-color: rgba(221, 155, 179, 0.3);
+  background: rgba(210, 99, 137, 0.13);
+}
+
+/* =========================================================
+   COMMON GAME PROGRESS
+========================================================= */
+
+.play-together-game-progress,
+.play-together-tap-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+
+  margin-bottom: 18px;
+
+  color: #80737b;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.play-together-game-progress span:last-child {
+  color: #b997a4;
+}
+
+/* =========================================================
+   MOOD GAME
+========================================================= */
+
+.play-together-clue {
+  padding: 21px;
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  text-align: center;
+}
+
+.play-together-clue > span,
+.play-together-note-number {
+  color: #917a84;
+
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.play-together-clue p {
+  max-width: 470px;
+
+  margin: 10px auto 0;
+
+  color: #d5c4ca;
+
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.play-together-mood-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+
+  margin-top: 14px;
+}
+
+.play-together-mood-option {
+  min-height: 50px;
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  color: #b9abb1;
+
+  font-size: 11px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.play-together-mood-option:hover {
+  border-color: rgba(220, 153, 177, 0.22);
+  background: rgba(213, 103, 142, 0.06);
+}
+
+.play-together-mood-option.is-correct {
+  border-color: rgba(139, 182, 145, 0.3);
+  background: rgba(139, 182, 145, 0.075);
+  color: #c6dec9;
+}
+
+.play-together-mood-option.is-wrong {
+  border-color: rgba(201, 102, 119, 0.28);
+  background: rgba(201, 102, 119, 0.065);
+  color: #d4a6ae;
+}
+
+.play-together-answer-message {
+  margin-top: 14px;
+
+  padding: 11px 14px;
+
+  border-radius: 11px;
+
+  background: rgba(213, 103, 142, 0.055);
+
+  color: #b995a3;
+
+  text-align: center;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   COMPLETE NOTE
+========================================================= */
+
+.play-together-note-game {
+  text-align: center;
+}
+
+.play-together-note-paper {
+  margin-top: 15px;
+
+  padding: 22px;
+
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 19px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.018)
+    );
+}
+
+.play-together-note-paper > span {
+  color: #d39caf;
+  font-size: 18px;
+}
+
+.play-together-note-paper p {
+  margin: 12px 0 15px;
+
+  color: #d5c3ca;
+
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.play-together-note-paper textarea {
+  width: 100%;
+
+  resize: vertical;
+
+  min-height: 100px;
+
+  padding: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 13px;
+
+  outline: none;
+
+  background: rgba(0, 0, 0, 0.16);
+
+  color: #e8dbe0;
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.play-together-note-paper textarea::placeholder {
+  color: #62575e;
+}
+
+.play-together-note-paper textarea:focus {
+  border-color: rgba(220, 151, 175, 0.25);
+}
+
+/* =========================================================
+   PICK A BOX
+========================================================= */
+
+.play-together-box-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+}
+
+.play-together-mystery-box {
+  position: relative;
+
+  aspect-ratio: 1;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 17px;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(213, 105, 141, 0.08),
+      transparent 65%
+    ),
+    rgba(255, 255, 255, 0.025);
+
+  color: #d8a4b7;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.play-together-mystery-box:hover {
+  border-color: rgba(221, 156, 180, 0.25);
+}
+
+.play-together-mystery-box span {
+  font-size: 28px;
+}
+
+.play-together-mystery-box small {
+  position: absolute;
+  right: 9px;
+  bottom: 8px;
+
+  color: #6f636a;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.play-together-mystery-box.is-used {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.play-together-box-hint {
+  margin: 18px 0 0;
+
+  color: #776b72;
+
+  text-align: center;
+  font-size: 10px;
+}
+
+.play-together-box-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.play-together-box-result-icon {
+  width: 82px;
+  height: 82px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 17px;
+
+  border: 1px solid rgba(222, 153, 177, 0.17);
+  border-radius: 50%;
+
+  background: rgba(211, 99, 137, 0.06);
+
+  font-size: 29px;
+}
+
+.play-together-box-result > span {
+  color: #8b7882;
+
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.play-together-box-result h3 {
+  margin: 7px 0;
+
+  color: #eedde3;
+
+  font-size: 22px;
+}
+
+.play-together-box-result p {
+  max-width: 400px;
+
+  margin: 0;
+
+  color: #988990;
+
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   FAST TAP
+========================================================= */
+
+.play-together-tap-game {
+  text-align: center;
+}
+
+.play-together-tap-intro {
+  padding: 25px 20px;
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 19px;
+
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.play-together-tap-intro > div {
+  color: #d9a1b5;
+  font-size: 30px;
+}
+
+.play-together-tap-intro h3 {
+  margin: 10px 0 6px;
+
+  color: #f2e2e7;
+
+  font-size: 21px;
+}
+
+.play-together-tap-intro p {
+  max-width: 380px;
+
+  margin: 0 auto;
+
+  color: #8f8289;
+
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.play-together-tap-stats {
+  margin-bottom: 25px;
+}
+
+.play-together-tap-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.play-together-tap-stats strong {
+  color: #d8adba;
+
+  font-size: 18px;
+  letter-spacing: normal;
+}
+
+.play-together-tap-target {
+  width: 145px;
+  height: 145px;
+
+  display: grid;
+  place-items: center;
+
+  margin: 5px auto 10px;
+
+  border: 1px solid rgba(222, 153, 177, 0.22);
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(215, 108, 145, 0.14),
+      rgba(215, 108, 145, 0.025) 65%
+    );
+
+  box-shadow:
+    0 0 50px rgba(210, 102, 139, 0.07),
+    inset 0 0 30px rgba(255, 255, 255, 0.02);
+
+  color: #e0a6b9;
+
+  font-size: 38px;
+
+  cursor: pointer;
+}
+
+.play-together-tap-hint {
+  margin: 10px 0 0;
+
+  color: #766a71;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   RESULTS
+========================================================= */
+
+.play-together-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.play-together-result-icon {
+  width: 78px;
+  height: 78px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 17px;
+
+  border: 1px solid rgba(222, 153, 177, 0.18);
+  border-radius: 50%;
+
+  background: rgba(211, 99, 137, 0.055);
+
+  color: #dda6b8;
+
+  font-size: 25px;
+}
+
+.play-together-result > span {
+  color: #84757e;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.play-together-result strong {
+  margin: 5px 0;
+
+  color: #f1dfe5;
+
+  font-size: 47px;
+  letter-spacing: -0.05em;
+}
+
+.play-together-result p {
+  margin: 0;
+
+  color: #94868d;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 850px) {
+  .play-together-page {
+    padding: 94px 20px 125px;
+  }
+
+  .play-together-header-orbit {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+@media (max-width: 700px) {
+  .play-together-page {
+    padding: 84px 14px 110px;
+  }
+
+  .play-together-header {
+    margin-bottom: 30px;
+  }
+
+  .play-together-header-orbit {
+    display: none;
+  }
+
+  .play-together-title {
+    font-size: clamp(43px, 14vw, 62px);
+  }
+
+  .play-together-games {
+    grid-template-columns: 1fr;
+  }
+
+  .play-together-game-card {
+    min-height: 215px;
+  }
+
+  .play-together-modal-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .play-together-modal {
+    max-height: calc(100vh - 20px);
+    border-radius: 25px 25px 18px 18px;
+  }
+
+  .play-together-modal-header {
+    padding: 21px 18px 17px;
+  }
+
+  .play-together-modal-body {
+    padding: 20px 17px 24px;
+  }
+
+  .play-together-modal-header h2 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .play-together-intro {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .play-together-intro-icon {
+    width: 45px;
+    height: 45px;
+    flex-basis: 45px;
+    border-radius: 14px;
+  }
+
+  .play-together-game-card {
+    min-height: 200px;
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .play-together-game-content h3 {
+    font-size: 19px;
+  }
+
+  .play-together-mood-options {
+    grid-template-columns: 1fr;
+  }
+
+  .play-together-box-grid {
+    gap: 8px;
+  }
+
+  .play-together-mystery-box {
+    border-radius: 14px;
+  }
+
+  .play-together-tap-target {
+    width: 125px;
+    height: 125px;
+  }
+
+  .play-together-footer-note {
+    font-size: 9px;
+  }
+}

@@ -21,3 +21,14 @@ The updated `firestore.rules` must be deployed to the Firebase project after dep
 2. Run `npm install`.
 3. Run `npm run dev`.
 4. For production, run `npm run build` and deploy the generated app with your normal Vercel workflow.
+<<<<<<< HEAD
+
+
+## UI stabilization pass — 2026-09-16
+- Scoped Today page `.editorial-heading` and `.eyebrow` styles so they no longer override every other page.
+- Renamed Today support modal classes so they no longer collide with Memories `.memory-modal` styles.
+- Renamed Today support button class so it no longer collides with Diary `.diary-save`.
+- Removed Today page `overflow: hidden` that could clip fixed modals.
+- Restored sufficient mobile bottom padding so the fixed mobile navigation does not cover Today content.
+=======
+>>>>>>> 4d6d17f0bcfc445e3ab177b42bfaa8437e09c75c
