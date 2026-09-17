@@ -1756,4 +1756,106 @@ export default function Today({ ctx }) {
 }
 
 /* =========================================================
-   SUPPORT RESPONDER
+   SUPPORT RESPONDER
+========================================================= */
+
+function SupportResponder({
+  spaceId,
+  request
+}) {
+  const [text, setText] =
+    useState("");
+
+  const [busy, setBusy] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  if (request.response) {
+    return (
+      <p className="support-response">
+        You replied: “
+        {request.response}”
+      </p>
+    );
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const response =
+      text.trim();
+
+    if (
+      !response ||
+      busy
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+
+    try {
+      await respondToSupportRequest(
+        spaceId,
+        request.id,
+        response
+      );
+
+      setText("");
+    } catch (err) {
+      console.error(
+        "[Today] support response failed",
+        err
+      );
+
+      setError(
+        err.message ||
+          "Couldn't send that reply."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <form
+        className="support-response-form"
+        onSubmit={handleSubmit}
+      >
+        <input
+          placeholder="Send a gentle reply…"
+          value={text}
+          onChange={(e) =>
+            setText(e.target.value)
+          }
+          disabled={busy}
+        />
+
+        <button
+          type="submit"
+          disabled={
+            busy ||
+            !text.trim()
+          }
+        >
+          {busy
+            ? "Sending…"
+            : "Send"}
+        </button>
+      </form>
+
+      {error && (
+        <p
+          className="today-task-error"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+    </>
+  );
+}

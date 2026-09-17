@@ -6,11 +6,43 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
+
   background: var(--bg-void);
+
+  background: var(--bg-primary);
+
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+/* Add the romantic blurred background atmosphere globally */
+body::before {
+  content: "";
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  top: -100px;
+  left: -250px;
+  background: rgba(217, 154, 184, 0.05);
+  filter: blur(140px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  width: 550px;
+  height: 550px;
+  right: -200px;
+  bottom: -100px;
+  background: rgba(205, 177, 122, 0.04);
+  filter: blur(140px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
 }
 
 h1, h2, h3, h4 {

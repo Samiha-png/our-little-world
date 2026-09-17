@@ -718,3 +718,35 @@ export default function Diary({ ctx }) {
 
 /* =========================
    NOTE DATE
+========================= */
+
+function formatNoteDate(value) {
+  if (!value) return "Just now";
+
+  try {
+    const date =
+      typeof value?.toDate ===
+      "function"
+        ? value.toDate()
+        : new Date(value);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return "Recently";
+    }
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  } catch {
+    return "Recently";
+  }
+}
