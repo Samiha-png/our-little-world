@@ -2,16 +2,17 @@
    DATA LAYER — Firebase is the source of truth for every collection here.
    Pattern everywhere: user action -> Firestore write -> onSnapshot listener
    -> UI re-render. Nothing in this file reads or writes localStorage.
+
+   NOTE: Memory images now upload to Cloudinary (unsigned upload) instead of
+   Firebase Storage, since Storage requires the paid Blaze plan. Everything
+   else in this file is untouched.
    ========================================================================= */
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDoc, getDocs,
   onSnapshot, query, where, orderBy, limit, documentId,
   serverTimestamp, deleteField, increment, runTransaction
 } from "firebase/firestore";
-import {
-  ref, uploadBytes, getDownloadURL, deleteObject
-} from "firebase/storage";
 
 export function todayKey(d = new Date()) {
   const y = d.getFullYear();
@@ -120,50 +121,271 @@ export async function updateGoalProgress(spaceId, goalId, progress) {
 export async function deleteGoal(spaceId, goalId) {
   return deleteDoc(spDoc(spaceId, "goals", goalId));
 }
-
 /* ------------------------------ MEMORIES ----------------------------------
-   Images go to Firebase Storage at spaces/{spaceId}/memories/{memoryId}/{file}
+   Memory images upload to Cloudinary using an unsigned upload preset.
+
+   Firestore stores:
+   - imageUrl    -> Cloudinary secure URL
+   - storagePath -> Cloudinary public_id
+   - authorUid   -> owner of the memory
+   - authorName  -> display name
+   - reactions   -> { uid: emoji }
+
+   Firebase Storage is NOT used here.
    ---------------------------------------------------------------------- */
-export function listenMemories(spaceId, cb) {
-  return listenSafely(query(sp(spaceId, "memories"), orderBy("createdAt", "desc")), (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
-}
-export async function addMemory(spaceId, uid, displayName, { title, date, text, caption, file }) {
-  const memRef = doc(sp(spaceId, "memories"));
-  let imageUrl = null, storagePath = null;
-  if (file) {
-    storagePath = `spaces/${spaceId}/memories/${memRef.id}/${file.name}`;
-    const fileRef = ref(storage, storagePath);
-    await uploadBytes(fileRef, file);
-    imageUrl = await getDownloadURL(fileRef);
+
+const CLOUDINARY_CLOUD_NAME = "wibfjrdf";
+const CLOUDINARY_UPLOAD_PRESET = "zzde2soi";
+
+const MAX_MEMORY_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+async function uploadToCloudinary(file) {
+  if (!file) {
+    return {
+      url: null,
+      publicId: null
+    };
   }
+
+  // Basic frontend validation
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("Please select a valid image file.");
+  }
+
+  if (file.size > MAX_MEMORY_IMAGE_SIZE) {
+    throw new Error("Image is too large. Please choose an image under 10 MB.");
+  }
+
+  const formData = new FormData();
+
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  let response;
+
+  try {
+    response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+  } catch (error) {
+    console.error("Cloudinary network error:", error);
+
+    throw new Error(
+      "Could not connect to image upload service. Please check your internet connection and try again."
+    );
+  }
+
+  let data = {};
+
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    console.error("Cloudinary upload failed:", data);
+
+    throw new Error(
+      data?.error?.message ||
+      "Image upload failed. Please check your Cloudinary upload preset."
+    );
+  }
+
+  if (!data.secure_url) {
+    console.error("Cloudinary returned no secure URL:", data);
+
+    throw new Error(
+      "Image uploaded but Cloudinary did not return an image URL."
+    );
+  }
+
+  return {
+    url: data.secure_url,
+    publicId: data.public_id || null
+  };
+}
+
+
+/* --------------------------- LISTEN MEMORIES ----------------------------- */
+
+export function listenMemories(spaceId, cb) {
+  return listenSafely(
+    query(
+      sp(spaceId, "memories"),
+      orderBy("createdAt", "desc")
+    ),
+    (snap) => {
+      const memories = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data()
+      }));
+
+      cb(memories);
+    },
+    "memories"
+  );
+}
+
+
+/* ----------------------------- ADD MEMORY -------------------------------- */
+
+export async function addMemory(
+  spaceId,
+  uid,
+  displayName,
+  {
+    title,
+    date,
+    text,
+    caption,
+    file
+  }
+) {
+  const cleanTitle = (title || "").trim();
+  const cleanText = (text || "").trim();
+  const cleanCaption = (caption || "").trim();
+
+  if (!cleanTitle) {
+    throw new Error("Please enter a memory title.");
+  }
+
+  if (!date) {
+    throw new Error("Please select a date.");
+  }
+
+  let imageUrl = null;
+  let storagePath = null;
+
+  // Upload image first.
+  // Firestore document is only created after Cloudinary succeeds.
+  if (file) {
+    const uploaded = await uploadToCloudinary(file);
+
+    imageUrl = uploaded.url;
+    storagePath = uploaded.publicId;
+  }
+
+  const memRef = doc(sp(spaceId, "memories"));
+
   await setDoc(memRef, {
-    title: title || "Untitled memory",
-    date: date || todayKey(),
-    text: text || "",
-    caption: caption || "",
-    imageUrl, storagePath,
-    authorUid: uid, authorName: displayName,
+    title: cleanTitle || "Untitled memory",
+    date,
+    text: cleanText,
+    caption: cleanCaption,
+
+    imageUrl,
+    storagePath,
+
+    authorUid: uid,
+    authorName: displayName || "You",
+
     reactions: {},
+
     createdAt: serverTimestamp()
   });
+
   return memRef.id;
 }
-export async function deleteMemory(spaceId, memory) {
-  if (memory.storagePath) {
-    try { await deleteObject(ref(storage, memory.storagePath)); } catch (e) { /* already gone */ }
+
+
+/* ---------------------------- DELETE MEMORY ----------------------------- */
+
+export async function deleteMemory(spaceId, memory, uid) {
+  if (!memory?.id) {
+    throw new Error("Memory could not be found.");
   }
-  return deleteDoc(spDoc(spaceId, "memories", memory.id));
+
+  /*
+    Frontend protection:
+    only the person who created the memory can delete it.
+
+    IMPORTANT:
+    Firestore security rules should ALSO enforce this.
+    UI protection alone is not security.
+  */
+  if (
+    uid &&
+    memory.authorUid &&
+    memory.authorUid !== uid
+  ) {
+    throw new Error("You can only delete memories created by you.");
+  }
+
+  /*
+    We intentionally do NOT delete the Cloudinary asset here.
+
+    Cloudinary deletion requires an API secret and must therefore happen
+    from a secure backend/serverless function, never from React frontend.
+
+    The Firestore document is deleted immediately, so the memory disappears
+    from the app.
+  */
+  await deleteDoc(
+    spDoc(spaceId, "memories", memory.id)
+  );
+
+  return true;
 }
-export async function setMemoryReaction(spaceId, memoryId, uid, emoji) {
-  // Tapping the same emoji again removes it (toggle).
-  const memSnap = await getDoc(spDoc(spaceId, "memories", memoryId));
-  const current = memSnap.exists() ? (memSnap.data().reactions || {}) : {};
-  const patch = current[uid] === emoji
-    ? { [`reactions.${uid}`]: deleteField() }
-    : { [`reactions.${uid}`]: emoji };
-  return updateDoc(spDoc(spaceId, "memories", memoryId), patch);
+
+
+/* ---------------------------- MEMORY REACTION --------------------------- */
+
+export async function setMemoryReaction(
+  spaceId,
+  memoryId,
+  uid,
+  emoji
+) {
+  if (!memoryId || !uid) {
+    throw new Error("Invalid memory reaction.");
+  }
+
+  const memoryRef = spDoc(
+    spaceId,
+    "memories",
+    memoryId
+  );
+
+  /*
+    Transaction prevents this problem:
+
+    User A reacts
+    User B reacts almost immediately
+    User A's stale Firestore read overwrites User B's reaction
+
+    Transaction automatically retries if the memory changes while
+    the transaction is running.
+  */
+  return runTransaction(db, async (transaction) => {
+    const memorySnap = await transaction.get(memoryRef);
+
+    if (!memorySnap.exists()) {
+      throw new Error("This memory no longer exists.");
+    }
+
+    const currentReactions =
+      memorySnap.data()?.reactions || {};
+
+    const reactions = {
+      ...currentReactions
+    };
+
+    // Same emoji = toggle off
+    if (reactions[uid] === emoji) {
+      delete reactions[uid];
+    } else {
+      reactions[uid] = emoji;
+    }
+
+    transaction.update(memoryRef, {
+      reactions
+    });
+  });
 }
 
 /* --------------------------- DAILY CONNECTION ------------------------------
@@ -653,4 +875,96 @@ export async function migrateLegacyCoupleData(spaceId, meUid, meIdentity, meName
 
   await updateDoc(doc(db, "spaces", spaceId), { legacyMigrated: true });
   return { migrated: true };
+}
+
+/* ------------------------------ WISH JAR -----------------------------------
+   Shared wishes for the couple.
+
+   Firestore:
+   spaces/{spaceId}/wishes/{wishId}
+
+   Firebase is the source of truth.
+   UI -> Firestore write -> onSnapshot -> UI update.
+   ---------------------------------------------------------------------- */
+
+export function listenWishes(spaceId, cb) {
+  return listenSafely(
+    query(
+      sp(spaceId, "wishes"),
+      orderBy("createdAt", "desc")
+    ),
+    (snap) => {
+      cb(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }))
+      );
+    },
+    "wishes"
+  );
+}
+
+export async function addWish(
+  spaceId,
+  uid,
+  displayName,
+  { text, category = "random" }
+) {
+  const cleanText = (text || "").trim();
+
+  if (!cleanText) {
+    throw new Error("Wish cannot be empty.");
+  }
+
+  return addDoc(sp(spaceId, "wishes"), {
+    text: cleanText,
+    category: category || "random",
+    authorUid: uid,
+    authorName: displayName || "You",
+    completed: false,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function toggleWishCompleted(
+  spaceId,
+  wishId,
+  completed
+) {
+  return updateDoc(
+    spDoc(spaceId, "wishes", wishId),
+    {
+      completed: !!completed,
+      completedAt: completed ? serverTimestamp() : deleteField(),
+      updatedAt: serverTimestamp(),
+    }
+  );
+}
+
+export async function deleteWish(spaceId, wishId) {
+  return deleteDoc(
+    spDoc(spaceId, "wishes", wishId)
+  );
+}
+
+export async function updateWish(
+  spaceId,
+  wishId,
+  { text, category }
+) {
+  const cleanText = (text || "").trim();
+
+  if (!cleanText) {
+    throw new Error("Wish cannot be empty.");
+  }
+
+  return updateDoc(
+    spDoc(spaceId, "wishes", wishId),
+    {
+      text: cleanText,
+      category: category || "random",
+      updatedAt: serverTimestamp(),
+    }
+  );
 }

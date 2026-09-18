@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import GlassCard from "../components/GlassCard";
 import {
   listenMemories,
   addMemory,
+  deleteMemory,
   setMemoryReaction,
   todayKey,
 } from "../services/data";
 import "./Memories.css";
 
 const REACTIONS = ["❤️", "🫂", "✨", "🥹", "😂"];
+
+const EMPTY_FORM = () => ({
+  title: "",
+  date: todayKey(),
+  text: "",
+  caption: "",
+  file: null,
+});
 
 export default function Memories({ ctx }) {
   const { spaceId, user, profile } = ctx;
@@ -18,31 +26,138 @@ export default function Memories({ ctx }) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState("grid");
   const [active, setActive] = useState(null);
-  const [form, setForm] = useState({
-    title: "",
-    date: todayKey(),
-    text: "",
-    caption: "",
-    file: null,
-  });
-  const [saving, setSaving] = useState(false);
+
+  const [form, setForm] =
+    useState(EMPTY_FORM);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [deleting, setDeleting] =
+    useState(false);
+
+  const [reacting, setReacting] =
+    useState(null);
+
+  const [error, setError] =
+    useState("");
+
+  const [deleteError, setDeleteError] =
+    useState("");
+
+
+  /* =========================================================
+     LOAD MEMORIES
+  ========================================================= */
 
   useEffect(() => {
     if (!spaceId) return;
 
-    const unsub = listenMemories(spaceId, setMemories);
+    const unsub =
+      listenMemories(
+        spaceId,
+        setMemories
+      );
 
-    return unsub;
+    return () => {
+      if (typeof unsub === "function") {
+        unsub();
+      }
+    };
   }, [spaceId]);
+
+
+  /* =========================================================
+     KEEP ACTIVE MEMORY IN SYNC WITH FIRESTORE
+  ========================================================= */
+
+  useEffect(() => {
+    if (!active) return;
+
+    const freshMemory =
+      memories.find(
+        (memory) =>
+          memory.id === active.id
+      );
+
+    if (!freshMemory) {
+      setActive(null);
+      return;
+    }
+
+    setActive(freshMemory);
+  }, [memories]);
+
+
+  /* =========================================================
+     DISPLAY NAME
+  ========================================================= */
 
   const myName =
     profile?.displayName ||
-    user.email.split("@")[0];
+    user?.displayName ||
+    user?.email?.split("@")[0] ||
+    "You";
+
+
+  /* =========================================================
+     OPEN ADD MEMORY
+  ========================================================= */
+
+  function openAddMemory() {
+    setError("");
+    setForm(EMPTY_FORM());
+    setOpen(true);
+  }
+
+
+  /* =========================================================
+     CLOSE ADD MEMORY
+  ========================================================= */
+
+  function closeAddMemory() {
+    if (saving) return;
+
+    setOpen(false);
+    setError("");
+    setForm(EMPTY_FORM());
+  }
+
+
+  /* =========================================================
+     FILE SELECT
+  ========================================================= */
+
+  function handleFileChange(e) {
+    const file =
+      e.target.files?.[0] ||
+      null;
+
+    setError("");
+
+    setForm((prev) => ({
+      ...prev,
+      file,
+    }));
+  }
+
+
+  /* =========================================================
+     ADD MEMORY
+  ========================================================= */
 
   async function handleAdd(e) {
     e.preventDefault();
 
+    if (!spaceId || !user?.uid) {
+      setError(
+        "Your space is not ready yet. Please refresh and try again."
+      );
+      return;
+    }
+
     setSaving(true);
+    setError("");
 
     try {
       await addMemory(
@@ -52,29 +167,170 @@ export default function Memories({ ctx }) {
         form
       );
 
-      setForm({
-        title: "",
-        date: todayKey(),
-        text: "",
-        caption: "",
-        file: null,
-      });
-
+      setForm(EMPTY_FORM());
       setOpen(false);
+    } catch (error) {
+      console.error(
+        "Memory upload failed:",
+        error
+      );
+
+      setError(
+        error?.message ||
+          "Could not save this memory. Please try again."
+      );
     } finally {
       setSaving(false);
     }
   }
 
+
+  /* =========================================================
+     REACTION
+  ========================================================= */
+
+  async function handleReaction(
+    memoryId,
+    reaction
+  ) {
+    if (
+      !spaceId ||
+      !user?.uid ||
+      reacting
+    ) {
+      return;
+    }
+
+    setReacting(reaction);
+    setDeleteError("");
+
+    try {
+      await setMemoryReaction(
+        spaceId,
+        memoryId,
+        user.uid,
+        reaction
+      );
+    } catch (error) {
+      console.error(
+        "Memory reaction failed:",
+        error
+      );
+
+      setDeleteError(
+        error?.message ||
+          "Could not save reaction."
+      );
+    } finally {
+      setReacting(null);
+    }
+  }
+
+
+  /* =========================================================
+     DELETE MEMORY
+  ========================================================= */
+
+  async function handleDeleteMemory() {
+    if (
+      !active ||
+      !user?.uid ||
+      deleting
+    ) {
+      return;
+    }
+
+    if (
+      active.authorUid &&
+      active.authorUid !== user.uid
+    ) {
+      setDeleteError(
+        "You can only delete your own memories."
+      );
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        "Delete this memory? This will remove it from your shared memories."
+      );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await deleteMemory(
+        spaceId,
+        active,
+        user.uid
+      );
+
+      setActive(null);
+    } catch (error) {
+      console.error(
+        "Delete memory failed:",
+        error
+      );
+
+      setDeleteError(
+        error?.message ||
+          "Could not delete this memory."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+
+  /* =========================================================
+     DATE FORMATTER
+  ========================================================= */
+
+  function formatDate(dateString) {
+    if (!dateString) return "";
+
+    const date =
+      new Date(
+        `${dateString}T00:00:00`
+      );
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return dateString;
+    }
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  }
+
+
   return (
-    <div className="page-container memory-vault-page">
+    <div className="page-container memories-page">
+
+      {/* =====================================================
+          AMBIENT BACKGROUND
+      ===================================================== */}
+
+      <div className="memories-orb memories-orb-one" />
+      <div className="memories-orb memories-orb-two" />
+
 
       {/* =====================================================
           HEADER
       ===================================================== */}
 
       <motion.header
-        className="memory-vault-header"
         initial={{
           opacity: 0,
           y: 20,
@@ -86,38 +342,44 @@ export default function Memories({ ctx }) {
         transition={{
           duration: 0.6,
         }}
+        className="memories-header"
       >
-        <div className="memory-vault-heading">
-
-          <p className="memory-vault-eyebrow">
-            OUR MEMORIES
+        <div className="memories-heading-wrap">
+          <p className="eyebrow">
+            our memories
           </p>
 
-          <h1 className="memory-vault-title">
+          <h1 className="editorial-heading">
             Moments{" "}
             <em>we kept</em>
           </h1>
 
-          <p className="memory-vault-subtitle">
-            Little pieces of our story, kept here.
+          <p className="memories-intro">
+            Little pieces of us,
+            saved here so they never
+            have to disappear.
           </p>
-
         </div>
 
-        <div className="memory-vault-actions">
 
-          <div className="memory-vault-view-toggle">
+        <div className="memories-actions">
 
+          <div
+            className="memories-view-toggle"
+            role="tablist"
+          >
             <button
               type="button"
               className={
                 view === "grid"
-                  ? "memory-vault-toggle-active"
+                  ? "is-active"
                   : ""
               }
-              onClick={() => setView("grid")}
+              onClick={() =>
+                setView("grid")
+              }
             >
-              <span>✦</span>
+              <span>▦</span>
               Polaroids
             </button>
 
@@ -125,269 +387,302 @@ export default function Memories({ ctx }) {
               type="button"
               className={
                 view === "timeline"
-                  ? "memory-vault-toggle-active"
+                  ? "is-active"
                   : ""
               }
               onClick={() =>
                 setView("timeline")
               }
             >
-              <span>⌁</span>
+              <span>☷</span>
               Our Story
             </button>
-
           </div>
+
 
           <button
             type="button"
-            className="memory-vault-add"
-            onClick={() => setOpen(true)}
+            className="memories-add"
+            onClick={openAddMemory}
           >
-            <span>+</span>
-            Add memory
+            <span className="memories-add-icon">
+              +
+            </span>
+
+            <span>
+              Add memory
+            </span>
           </button>
 
         </div>
       </motion.header>
 
+
       {/* =====================================================
           MEMORY COUNT
       ===================================================== */}
 
-      <motion.div
-        className="memory-vault-meta"
-        initial={{
-          opacity: 0,
-        }}
-        animate={{
-          opacity: 1,
-        }}
-        transition={{
-          delay: 0.2,
-        }}
-      >
-        <span className="memory-vault-meta-line" />
+      {memories.length > 0 && (
+        <motion.div
+          className="memories-count"
+          initial={{
+            opacity: 0,
+          }}
+          animate={{
+            opacity: 1,
+          }}
+        >
+          <span>
+            {memories.length}
+          </span>
 
-        <span>
-          {memories.length}{" "}
           {memories.length === 1
-            ? "memory"
-            : "memories"}
-        </span>
+            ? " moment saved"
+            : " moments saved"}
+        </motion.div>
+      )}
 
-        <span className="memory-vault-meta-heart">
-          ♡
-        </span>
-
-        <span className="memory-vault-meta-line" />
-      </motion.div>
 
       {/* =====================================================
-          POLAROID GRID
+          GRID VIEW
       ===================================================== */}
 
       {view === "grid" ? (
-        <div className="memory-vault-grid">
+        <div className="memories-masonry">
 
-          {memories.map((m, i) => (
-            <motion.article
-              key={m.id}
-              className="memory-vault-polaroid"
-              initial={{
-                opacity: 0,
-                y: 25,
-                rotate: i % 2 === 0 ? -1.2 : 1.2,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                rotate: i % 2 === 0 ? -1.2 : 1.2,
-              }}
-              transition={{
-                delay: Math.min(
-                  i * 0.06,
-                  0.5
-                ),
-                duration: 0.45,
-              }}
-              whileHover={{
-                y: -8,
-                rotate: 0,
-              }}
-              onClick={() => setActive(m)}
-            >
-
-              <div className="memory-vault-photo">
-
-                {m.imageUrl ? (
-                  <img
-                    src={m.imageUrl}
-                    alt={m.title}
-                  />
-                ) : (
-                  <div className="memory-vault-photo-empty">
-                    <span>
-                      {m.title?.charAt(0) || "♡"}
-                    </span>
-                    <small>
-                      A little memory
-                    </small>
-                  </div>
-                )}
-
-                <div className="memory-vault-photo-shine" />
-
-              </div>
-
-              <div className="memory-vault-polaroid-info">
-
-                <p className="memory-vault-polaroid-title">
-                  {m.title}
-                </p>
-
-                {m.caption && (
-                  <p className="memory-vault-polaroid-caption">
-                    {m.caption}
-                  </p>
-                )}
-
-                <div className="memory-vault-polaroid-bottom">
-                  <span>
-                    {m.date}
-                  </span>
-
-                  <span>
-                    ♡
-                  </span>
-                </div>
-
-              </div>
-
-            </motion.article>
-          ))}
-
-          {memories.length === 0 && (
-            <div className="memory-vault-empty">
-              <div className="memory-vault-empty-icon">
-                ♡
-              </div>
-
-              <h3>
-                Your story starts here
-              </h3>
-
-              <p>
-                Add your first little memory
-                and keep it forever.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setOpen(true)}
-              >
-                + Add first memory
-              </button>
-            </div>
-          )}
-
-        </div>
-      ) : (
-
-        /* ===================================================
-           TIMELINE
-        =================================================== */
-
-        <div className="memory-vault-timeline">
-
-          {[...memories]
-            .sort((a, b) =>
-              a.date > b.date ? 1 : -1
-            )
-            .map((m, i) => (
+          {memories.map(
+            (memory, index) => (
               <motion.article
-                key={m.id}
-                className="memory-vault-timeline-item"
+                key={memory.id}
                 initial={{
                   opacity: 0,
-                  x: -20,
+                  y: 25,
                 }}
                 animate={{
                   opacity: 1,
-                  x: 0,
+                  y: 0,
                 }}
                 transition={{
-                  delay: i * 0.05,
+                  delay: Math.min(
+                    index * 0.045,
+                    0.35
+                  ),
                 }}
+                className="memory-polaroid"
+                onClick={() =>
+                  setActive(memory)
+                }
               >
 
-                <div className="memory-vault-timeline-marker">
-                  <span />
-                </div>
+                <div className="memory-photo">
 
-                <div
-                  className="memory-vault-timeline-card"
-                  onClick={() =>
-                    setActive(m)
-                  }
-                >
+                  {memory.imageUrl ? (
+                    <img
+                      src={memory.imageUrl}
+                      alt={
+                        memory.title ||
+                        "Memory"
+                      }
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="memory-polaroid-blank">
+                      <span>
+                        {memory.title?.charAt(
+                          0
+                        ) || "♡"}
+                      </span>
+                    </div>
+                  )}
 
-                  <div className="memory-vault-timeline-date">
-                    {m.date}
+                  <div className="memory-photo-overlay">
+                    <span>
+                      Open memory
+                    </span>
                   </div>
 
-                  <div className="memory-vault-timeline-main">
+                </div>
 
-                    {m.imageUrl && (
-                      <img
-                        src={m.imageUrl}
-                        alt={m.title}
-                      />
-                    )}
 
-                    <div>
-                      <h3>
-                        {m.title}
-                      </h3>
+                <div className="memory-polaroid-info">
 
-                      {m.caption && (
-                        <p>
-                          {m.caption}
-                        </p>
+                  <p className="memory-polaroid-title">
+                    {memory.title}
+                  </p>
+
+                  <div className="memory-polaroid-meta">
+
+                    <span>
+                      {formatDate(
+                        memory.date
                       )}
+                    </span>
 
-                      {m.text && (
-                        <span>
-                          {m.text}
+                    {memory.authorName && (
+                      <>
+                        <span className="memory-meta-dot">
+                          ·
                         </span>
-                      )}
-                    </div>
+
+                        <span>
+                          {memory.authorName}
+                        </span>
+                      </>
+                    )}
 
                   </div>
 
                 </div>
 
               </motion.article>
-            ))}
+            )
+          )}
+
 
           {memories.length === 0 && (
-            <div className="memory-vault-empty">
-              <div className="memory-vault-empty-icon">
+            <motion.div
+              className="memories-empty"
+              initial={{
+                opacity: 0,
+                y: 15,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+            >
+              <div className="memories-empty-icon">
                 ♡
               </div>
 
               <h3>
-                The story hasn't started yet
+                Nothing saved yet
               </h3>
 
               <p>
-                Your first memory will appear here.
+                Your first little
+                memory can start
+                the collection.
               </p>
 
               <button
                 type="button"
-                onClick={() => setOpen(true)}
+                onClick={
+                  openAddMemory
+                }
               >
-                + Add memory
+                Add your first memory
+              </button>
+            </motion.div>
+          )}
+
+        </div>
+      ) : (
+
+        /* =====================================================
+           TIMELINE VIEW
+        ===================================================== */
+
+        <div className="memories-timeline">
+
+          {[
+            ...memories,
+          ]
+            .sort((a, b) =>
+              a.date > b.date
+                ? 1
+                : -1
+            )
+            .map(
+              (memory, index) => (
+                <motion.article
+                  key={memory.id}
+                  initial={{
+                    opacity: 0,
+                    x: -18,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                  }}
+                  transition={{
+                    delay:
+                      index * 0.045,
+                  }}
+                  className="timeline-item"
+                >
+
+                  <div className="timeline-marker">
+                    <div className="timeline-dot" />
+                  </div>
+
+                  <div
+                    className="timeline-content"
+                    onClick={() =>
+                      setActive(memory)
+                    }
+                  >
+
+                    <div className="timeline-content-top">
+
+                      <p className="timeline-date">
+                        {formatDate(
+                          memory.date
+                        )}
+                      </p>
+
+                      <span className="timeline-open">
+                        View →
+                      </span>
+
+                    </div>
+
+                    <p className="timeline-title">
+                      {memory.title}
+                    </p>
+
+                    {memory.caption && (
+                      <p className="timeline-caption">
+                        {memory.caption}
+                      </p>
+                    )}
+
+                    <div className="timeline-author">
+                      <span className="timeline-author-dot" />
+
+                      {memory.authorName ||
+                        "You"}
+                    </div>
+
+                  </div>
+
+                </motion.article>
+              )
+            )}
+
+
+          {memories.length === 0 && (
+            <div className="memories-empty">
+              <div className="memories-empty-icon">
+                ♡
+              </div>
+
+              <h3>
+                The story starts here
+              </h3>
+
+              <p>
+                Add a memory and
+                watch your story grow.
+              </p>
+
+              <button
+                type="button"
+                onClick={
+                  openAddMemory
+                }
+              >
+                Add memory
               </button>
             </div>
           )}
@@ -395,14 +690,15 @@ export default function Memories({ ctx }) {
         </div>
       )}
 
+
       {/* =====================================================
-          MEMORY VIEW MODAL
+          VIEW MEMORY MODAL
       ===================================================== */}
 
       <AnimatePresence>
         {active && (
           <motion.div
-            className="memory-vault-modal-backdrop"
+            className="memory-modal-backdrop"
             initial={{
               opacity: 0,
             }}
@@ -412,114 +708,210 @@ export default function Memories({ ctx }) {
             exit={{
               opacity: 0,
             }}
-            onClick={() => setActive(null)}
+            onClick={() =>
+              setActive(null)
+            }
           >
 
             <motion.div
-              className="memory-vault-modal"
+              className="memory-modal memory-view-modal"
               initial={{
-                scale: 0.92,
+                scale: 0.94,
+                y: 18,
                 opacity: 0,
-                y: 20,
               }}
               animate={{
                 scale: 1,
-                opacity: 1,
                 y: 0,
+                opacity: 1,
               }}
               exit={{
-                scale: 0.92,
+                scale: 0.94,
+                y: 18,
                 opacity: 0,
-                y: 20,
               }}
               transition={{
-                duration: 0.3,
+                duration: 0.25,
               }}
               onClick={(e) =>
                 e.stopPropagation()
               }
             >
 
-              <button
-                type="button"
-                className="memory-vault-modal-close"
-                onClick={() =>
-                  setActive(null)
-                }
-              >
-                ×
-              </button>
+              {/* Modal top */}
 
-              {active.imageUrl && (
-                <div className="memory-vault-modal-image">
+              <div className="memory-modal-topbar">
+
+                <div className="memory-modal-label">
+                  a moment we kept
+                </div>
+
+                <button
+                  type="button"
+                  className="memory-modal-close"
+                  onClick={() =>
+                    setActive(null)
+                  }
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+
+              </div>
+
+
+              {/* Image */}
+
+              {active.imageUrl ? (
+                <div className="memory-modal-image-wrap">
                   <img
                     src={active.imageUrl}
-                    alt={active.title}
+                    alt={
+                      active.title ||
+                      "Memory"
+                    }
                   />
+                </div>
+              ) : (
+                <div className="memory-modal-image-placeholder">
+                  <span>
+                    {active.title?.charAt(
+                      0
+                    ) || "♡"}
+                  </span>
                 </div>
               )}
 
-              <div className="memory-vault-modal-content">
 
-                <p className="memory-vault-modal-eyebrow">
-                  MEMORY
-                </p>
+              {/* Content */}
 
-                <h2>
-                  {active.title}
-                </h2>
+              <div className="memory-modal-content">
 
-                <p className="memory-vault-modal-date">
-                  {active.date}
-                  {" · "}
-                  {active.authorName}
-                </p>
+                <div className="memory-modal-heading">
+
+                  <div>
+                    <h2>
+                      {active.title}
+                    </h2>
+
+                    <p className="memory-modal-date">
+                      {formatDate(
+                        active.date
+                      )}
+                      <span> · </span>
+                      {active.authorName ||
+                        "You"}
+                    </p>
+                  </div>
+
+                </div>
+
 
                 {active.caption && (
-                  <p className="memory-vault-modal-caption">
+                  <p className="memory-modal-caption">
                     {active.caption}
                   </p>
                 )}
 
+
                 {active.text && (
-                  <p className="memory-vault-modal-text">
-                    {active.text}
-                  </p>
+                  <div className="memory-modal-story">
+                    <span className="memory-story-mark">
+                      “
+                    </span>
+
+                    <p>
+                      {active.text}
+                    </p>
+                  </div>
                 )}
 
-                <div className="memory-vault-modal-reactions">
 
-                  <span>
-                    Leave a little love
+                {/* Reactions */}
+
+                <div className="memory-reaction-section">
+
+                  <span className="memory-reaction-label">
+                    leave a little feeling
                   </span>
 
-                  <div>
-                    {REACTIONS.map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        className={
+                  <div className="memory-modal-reactions">
+
+                    {REACTIONS.map(
+                      (reaction) => {
+                        const picked =
                           active.reactions?.[
-                            user.uid
-                          ] === r
-                            ? "memory-vault-reaction-picked"
-                            : ""
-                        }
-                        onClick={() =>
-                          setMemoryReaction(
-                            spaceId,
-                            active.id,
-                            user.uid,
-                            r
-                          )
-                        }
-                      >
-                        {r}
-                      </button>
-                    ))}
+                            user?.uid
+                          ] === reaction;
+
+                        return (
+                          <button
+                            key={reaction}
+                            type="button"
+                            className={
+                              picked
+                                ? "is-picked"
+                                : ""
+                            }
+                            disabled={
+                              !!reacting
+                            }
+                            onClick={() =>
+                              handleReaction(
+                                active.id,
+                                reaction
+                              )
+                            }
+                          >
+                            <span>
+                              {reaction}
+                            </span>
+                          </button>
+                        );
+                      }
+                    )}
+
                   </div>
 
                 </div>
+
+
+                {/* Bottom actions */}
+
+                <div className="memory-modal-footer">
+
+                  <div className="memory-footer-note">
+                    <span>♡</span>
+                    kept between us
+                  </div>
+
+
+                  {active.authorUid ===
+                    user?.uid && (
+                    <button
+                      type="button"
+                      className="memory-delete-btn"
+                      onClick={
+                        handleDeleteMemory
+                      }
+                      disabled={
+                        deleting
+                      }
+                    >
+                      {deleting
+                        ? "Deleting…"
+                        : "Delete memory"}
+                    </button>
+                  )}
+
+                </div>
+
+
+                {deleteError && (
+                  <p className="memory-delete-error">
+                    {deleteError}
+                  </p>
+                )}
 
               </div>
 
@@ -529,6 +921,7 @@ export default function Memories({ ctx }) {
         )}
       </AnimatePresence>
 
+
       {/* =====================================================
           ADD MEMORY MODAL
       ===================================================== */}
@@ -536,7 +929,7 @@ export default function Memories({ ctx }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="memory-vault-modal-backdrop"
+            className="memory-modal-backdrop"
             initial={{
               opacity: 0,
             }}
@@ -546,159 +939,282 @@ export default function Memories({ ctx }) {
             exit={{
               opacity: 0,
             }}
-            onClick={() => setOpen(false)}
+            onClick={closeAddMemory}
           >
 
             <motion.div
-              className="memory-vault-add-modal"
+              className="memory-modal memory-add-modal"
               initial={{
-                scale: 0.92,
+                scale: 0.94,
+                y: 18,
                 opacity: 0,
-                y: 20,
               }}
               animate={{
                 scale: 1,
-                opacity: 1,
                 y: 0,
+                opacity: 1,
               }}
               exit={{
-                scale: 0.92,
+                scale: 0.94,
+                y: 18,
                 opacity: 0,
-                y: 20,
               }}
               onClick={(e) =>
                 e.stopPropagation()
               }
             >
 
-              <div className="memory-vault-add-header">
+              {/* Header */}
+
+              <div className="memory-form-header">
 
                 <div>
-                  <p>
-                    KEEP THIS MOMENT
+                  <p className="memory-form-eyebrow">
+                    save a moment
                   </p>
 
                   <h2>
-                    Add a memory
+                    Add to our story
                   </h2>
 
-                  <span>
-                    Save a little piece of today.
-                  </span>
+                  <p>
+                    Give this little
+                    moment a place to
+                    stay.
+                  </p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpen(false)
+                  className="memory-modal-close"
+                  onClick={
+                    closeAddMemory
                   }
+                  disabled={saving}
+                  aria-label="Close"
                 >
                   ×
                 </button>
 
               </div>
 
+
+              {/* Form */}
+
               <form
                 onSubmit={handleAdd}
-                className="memory-vault-form"
+                className="memory-form"
               >
 
-                <label>
-                  <span>Title</span>
+                <div className="memory-form-grid">
 
-                  <input
-                    placeholder="The day we..."
-                    value={form.title}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        title: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </label>
+                  {/* Title */}
 
-                <label>
-                  <span>Date</span>
+                  <label className="memory-field memory-field-full">
 
-                  <input
-                    type="date"
-                    value={form.date}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        date: e.target.value,
-                      })
-                    }
-                  />
-                </label>
-
-                <label>
-                  <span>Your story</span>
-
-                  <textarea
-                    placeholder="Tell the story…"
-                    rows={4}
-                    value={form.text}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        text: e.target.value,
-                      })
-                    }
-                  />
-                </label>
-
-                <label>
-                  <span>Caption</span>
-
-                  <input
-                    placeholder="A little note..."
-                    value={form.caption}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        caption: e.target.value,
-                      })
-                    }
-                  />
-                </label>
-
-                <label className="memory-vault-file-field">
-                  <span>Photo</span>
-
-                  <div className="memory-vault-file-box">
                     <span>
-                      {form.file
-                        ? form.file.name
-                        : "Choose a photo"}
+                      Title
                     </span>
 
                     <input
-                      type="file"
-                      accept="image/*"
+                      type="text"
+                      placeholder="The day we..."
+                      value={
+                        form.title
+                      }
                       onChange={(e) =>
-                        setForm({
-                          ...form,
-                          file:
-                            e.target.files?.[0] ||
-                            null,
-                        })
+                        setForm(
+                          (prev) => ({
+                            ...prev,
+                            title:
+                              e.target
+                                .value,
+                          })
+                        )
+                      }
+                      required
+                    />
+
+                  </label>
+
+
+                  {/* Date */}
+
+                  <label className="memory-field">
+
+                    <span>
+                      Date
+                    </span>
+
+                    <input
+                      type="date"
+                      value={
+                        form.date
+                      }
+                      onChange={(e) =>
+                        setForm(
+                          (prev) => ({
+                            ...prev,
+                            date:
+                              e.target
+                                .value,
+                          })
+                        )
                       }
                     />
-                  </div>
-                </label>
 
-                <button
-                  type="submit"
-                  className="memory-vault-save"
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Saving…"
-                    : "Keep this memory"}
-                </button>
+                  </label>
+
+
+                  {/* Caption */}
+
+                  <label className="memory-field">
+
+                    <span>
+                      Caption
+                    </span>
+
+                    <input
+                      type="text"
+                      placeholder="A tiny reminder..."
+                      value={
+                        form.caption
+                      }
+                      onChange={(e) =>
+                        setForm(
+                          (prev) => ({
+                            ...prev,
+                            caption:
+                              e.target
+                                .value,
+                          })
+                        )
+                      }
+                    />
+
+                  </label>
+
+
+                  {/* Story */}
+
+                  <label className="memory-field memory-field-full">
+
+                    <span>
+                      The story
+                    </span>
+
+                    <textarea
+                      placeholder="Tell us what made this moment special..."
+                      rows={5}
+                      value={
+                        form.text
+                      }
+                      onChange={(e) =>
+                        setForm(
+                          (prev) => ({
+                            ...prev,
+                            text:
+                              e.target
+                                .value,
+                          })
+                        )
+                      }
+                    />
+
+                  </label>
+
+
+                  {/* Upload */}
+
+                  <label className="memory-upload-field memory-field-full">
+
+                    <span className="memory-upload-label">
+                      Photo
+                    </span>
+
+                    <div className="memory-upload-box">
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={
+                          handleFileChange
+                        }
+                        disabled={
+                          saving
+                        }
+                      />
+
+                      <div className="memory-upload-icon">
+                        ↑
+                      </div>
+
+                      <strong>
+                        {form.file
+                          ? "Photo selected"
+                          : "Choose a photo"}
+                      </strong>
+
+                      <small>
+                        {form.file
+                          ? form.file
+                              .name
+                          : "JPG, PNG, WEBP · up to 10 MB"}
+                      </small>
+
+                    </div>
+
+                  </label>
+
+                </div>
+
+
+                {error && (
+                  <div className="memory-form-error">
+                    <span>!</span>
+                    {error}
+                  </div>
+                )}
+
+
+                <div className="memory-form-footer">
+
+                  <button
+                    type="button"
+                    className="memory-cancel-btn"
+                    onClick={
+                      closeAddMemory
+                    }
+                    disabled={
+                      saving
+                    }
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="memory-submit-btn"
+                    disabled={
+                      saving
+                    }
+                  >
+                    {saving ? (
+                      <>
+                        <span className="memory-spinner" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        Save memory
+                        <span>
+                          →
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                </div>
 
               </form>
 

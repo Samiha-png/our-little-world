@@ -11,7 +11,7 @@ const LINKS = [
   { to: "/memories", label: "Memories", icon: "❈" },
   { to: "/our-world", label: "Our World", icon: "✦" },
   { to: "/my-space", label: "My Space", icon: "♡" },
-  { to: "/play-together", label: "Play Together", icon: "🎮" },
+  { to: "/play-together", label: "Wish jar", icon: "🎮" },
   { to: "/settings", label: "Settings", icon: "⚙" },
 ];
 
@@ -21,7 +21,7 @@ const LINKS = [
  * =====================================================
  *
  * Keep the bottom nav clean.
- * Play Together lives inside More.
+ * Wish jar lives inside More.
  */
 
 const MOBILE_LINKS = [

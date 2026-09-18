@@ -1,777 +1,976 @@
-
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  listenWishes,
+  addWish,
+  toggleWishCompleted,
+  deleteWish,
+  updateWish,
+} from "../services/data";
 import "./PlayTogether.css";
 
-/* =========================================================
-   GAME DATA
-========================================================= */
-
-const GAMES = [
-  {
-    id: "mood",
-    icon: "☾",
-    title: "Guess the Mood",
-    description: "Read the tiny clues and guess the feeling.",
-    tag: "Guess",
-  },
-  {
-    id: "note",
-    icon: "✎",
-    title: "Complete the Note",
-    description: "Finish the little sentence with your own answer.",
-    tag: "Creative",
-  },
-  {
-    id: "boxes",
-    icon: "◇",
-    title: "Pick a Box",
-    description: "Choose a mystery box and see what's inside.",
-    tag: "Surprise",
-  },
-  {
-    id: "tap",
-    icon: "✦",
-    title: "Fast Tap",
-    description: "How many stars can you catch before time runs out?",
-    tag: "10 Sec",
-  },
+const CATEGORIES = [
+  { id: "date", label: "Date", icon: "♡" },
+  { id: "place", label: "Place", icon: "⌂" },
+  { id: "food", label: "Food", icon: "♨" },
+  { id: "fun", label: "Fun", icon: "✦" },
+  { id: "memory", label: "Memory", icon: "◌" },
+  { id: "random", label: "Random", icon: "✧" },
 ];
 
-const MOOD_ROUNDS = [
-  {
-    clue: "A quiet evening, soft music and absolutely no plans.",
-    options: ["Peaceful", "Excited", "Annoyed", "Energetic"],
-    answer: "Peaceful",
-  },
-  {
-    clue: "You finally finished something you've been working on all day.",
-    options: ["Relieved", "Sleepy", "Confused", "Bored"],
-    answer: "Relieved",
-  },
-  {
-    clue: "Someone remembers a tiny detail you mentioned weeks ago.",
-    options: ["Touched", "Angry", "Sleepy", "Nervous"],
-    answer: "Touched",
-  },
-  {
-    clue: "A completely unexpected good thing happens.",
-    options: ["Surprised", "Tired", "Bored", "Calm"],
-    answer: "Surprised",
-  },
-];
+function getCategory(category) {
+  return (
+    CATEGORIES.find((item) => item.id === category) ||
+    CATEGORIES.find((item) => item.id === "random")
+  );
+}
 
-const NOTE_PROMPTS = [
-  "Today I would really like to...",
-  "One tiny thing that made me smile was...",
-  "If today had a soundtrack, it would be...",
-  "A place I'd love to visit someday is...",
-  "Something I appreciate today is...",
-  "Right now I could really use...",
-];
+function formatDate(timestamp) {
+  if (!timestamp) return "";
 
-const BOX_CONTENT = [
-  {
-    icon: "🌙",
-    title: "Quiet Moment",
-    text: "Take a tiny break. You deserve a peaceful minute.",
-  },
-  {
-    icon: "✦",
-    title: "Little Star",
-    text: "You made it through another day. That's something.",
-  },
-  {
-    icon: "☁",
-    title: "Soft Reminder",
-    text: "Not every day needs to be productive to be meaningful.",
-  },
-  {
-    icon: "🌷",
-    title: "Tiny Win",
-    text: "Remember one small thing you did well today.",
-  },
-  {
-    icon: "♡",
-    title: "Good Thought",
-    text: "Think of one memory that instantly makes you smile.",
-  },
-  {
-    icon: "🎀",
-    title: "Your Turn",
-    text: "Send a tiny kind message to someone you care about.",
-  },
-];
+  try {
+    const date = timestamp?.toDate
+      ? timestamp.toDate()
+      : new Date(timestamp);
 
-/* =========================================================
-   MAIN PAGE
-========================================================= */
+    if (Number.isNaN(date.getTime())) return "";
 
-export default function PlayTogether() {
-  const [activeGame, setActiveGame] = useState(null);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+export default function PlayTogether({ ctx }) {
+  const { spaceId, user, profile } = ctx || {};
+
+  const [wishes, setWishes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [showModal, setShowModal] = useState(false);
+  const [editingWish, setEditingWish] = useState(null);
+
+  const [selectedWish, setSelectedWish] = useState(null);
+  const [pickedWish, setPickedWish] = useState(null);
+
+  const [wishText, setWishText] = useState("");
+  const [category, setCategory] = useState("random");
+
+  const [saving, setSaving] = useState(false);
+  const [actionId, setActionId] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!spaceId) {
+      setWishes([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    const unsubscribe = listenWishes(spaceId, (items) => {
+      setWishes(items || []);
+      setLoading(false);
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
+  }, [spaceId]);
+
+  const activeWishes = useMemo(
+    () => wishes.filter((wish) => !wish.completed),
+    [wishes]
+  );
+
+  const completedWishes = useMemo(
+    () => wishes.filter((wish) => wish.completed),
+    [wishes]
+  );
+
+  const progress = wishes.length
+    ? Math.round((completedWishes.length / wishes.length) * 100)
+    : 0;
+
+  const openAdd = () => {
+    setEditingWish(null);
+    setWishText("");
+    setCategory("random");
+    setError("");
+    setShowModal(true);
+  };
+
+  const openEdit = (wish) => {
+    setEditingWish(wish);
+    setWishText(wish.text || "");
+    setCategory(wish.category || "random");
+    setError("");
+    setSelectedWish(null);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    if (saving) return;
+
+    setShowModal(false);
+    setEditingWish(null);
+    setWishText("");
+    setCategory("random");
+    setError("");
+  };
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+
+    const cleanText = wishText.trim();
+
+    if (!cleanText) {
+      setError("Write your wish first.");
+      return;
+    }
+
+    if (!spaceId || !user?.uid) {
+      setError("Your shared space is not ready yet.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const displayName =
+        profile?.displayName ||
+        user?.displayName ||
+        "You";
+
+      if (editingWish) {
+        await updateWish(spaceId, editingWish.id, {
+          text: cleanText,
+          category,
+        });
+      } else {
+        await addWish(
+          spaceId,
+          user.uid,
+          displayName,
+          {
+            text: cleanText,
+            category,
+          }
+        );
+      }
+
+      closeModal();
+    } catch (err) {
+      console.error("Wish save error:", err);
+      setError(
+        err?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleComplete = async (wish) => {
+    if (!spaceId) return;
+
+    setActionId(wish.id);
+
+    try {
+      await toggleWishCompleted(
+        spaceId,
+        wish.id,
+        !wish.completed
+      );
+
+      if (selectedWish?.id === wish.id) {
+        setSelectedWish(null);
+      }
+    } catch (err) {
+      console.error("Wish completion error:", err);
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleDelete = async (wish) => {
+    if (!spaceId) return;
+
+    const confirmed = window.confirm(
+      "Delete this wish?"
+    );
+
+    if (!confirmed) return;
+
+    setActionId(wish.id);
+
+    try {
+      await deleteWish(spaceId, wish.id);
+
+      if (selectedWish?.id === wish.id) {
+        setSelectedWish(null);
+      }
+
+      if (pickedWish?.id === wish.id) {
+        setPickedWish(null);
+      }
+    } catch (err) {
+      console.error("Wish delete error:", err);
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const pickRandomWish = () => {
+    if (!activeWishes.length) {
+      setPickedWish(null);
+      return;
+    }
+
+    const randomIndex = Math.floor(
+      Math.random() * activeWishes.length
+    );
+
+    setPickedWish(activeWishes[randomIndex]);
+  };
 
   return (
-    <main className="play-together-page">
-      <div className="play-together-bg-glow play-together-bg-glow-one" />
-      <div className="play-together-bg-glow play-together-bg-glow-two" />
+    <main className="wish-page">
+      <div className="wish-background">
+        <span className="wish-orb wish-orb-one" />
+        <span className="wish-orb wish-orb-two" />
+        <span className="wish-orb wish-orb-three" />
+      </div>
 
-      <section className="play-together-shell">
-
+      <section className="wish-container">
         {/* HEADER */}
-        <header className="play-together-header">
+        <motion.header
+          className="wish-header"
+          initial={{ opacity: 0, y: -18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div>
-            <span className="play-together-eyebrow">
-              ✦ LITTLE PLAYGROUND
+            <span className="wish-eyebrow">
+              SOMETHING FOR US
             </span>
 
-            <h1 className="play-together-title">
-              Play <span>Together</span>
+            <h1>
+              Our <span>Wish Jar</span>
             </h1>
 
-            <p className="play-together-subtitle">
-              A tiny corner for games, little challenges and
-              unexpected moments.
+            <p>
+              Little dreams, random plans and things
+              we want to experience together.
             </p>
           </div>
 
-          <div className="play-together-header-orbit">
-            <span>♡</span>
-            <span>✦</span>
-            <span>☾</span>
-          </div>
-        </header>
+          <motion.button
+            className="wish-add-button"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={openAdd}
+          >
+            <span>＋</span>
+            Add Wish
+          </motion.button>
+        </motion.header>
 
-        {/* INTRO */}
-        <section className="play-together-intro">
-          <div className="play-together-intro-icon">
-            ✦
+        {/* STATS */}
+        <motion.section
+          className="wish-stats"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="wish-stat">
+            <strong>{activeWishes.length}</strong>
+            <span>Dreams waiting</span>
           </div>
 
-          <div>
-            <p className="play-together-intro-label">
-              YOUR LITTLE GAME CORNER
-            </p>
+          <div className="wish-stat">
+            <strong>{completedWishes.length}</strong>
+            <span>Dreams lived</span>
+          </div>
+
+          <div className="wish-progress">
+            <div className="wish-progress-top">
+              <span>Our little progress</span>
+              <strong>{progress}%</strong>
+            </div>
+
+            <div className="wish-progress-track">
+              <motion.div
+                className="wish-progress-fill"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{
+                  duration: 0.7,
+                  ease: "easeOut",
+                }}
+              />
+            </div>
+          </div>
+        </motion.section>
+
+        {/* JAR */}
+        <motion.section
+          className="wish-jar-section"
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.15 }}
+        >
+          <div className="wish-jar-copy">
+            <span className="wish-small-label">
+              THE LITTLE JAR
+            </span>
 
             <h2>
-              Pick something fun.
+              Fill it with
+              <br />
+              <em>things worth doing.</em>
             </h2>
 
             <p>
-              No scores to worry about. Just a few minutes of fun.
+              Whenever an idea pops into your head,
+              put it here. One day, we'll pick one
+              and make it happen.
             </p>
-          </div>
-        </section>
 
-        {/* GAME GRID */}
-        <section className="play-together-games">
-          {GAMES.map((game, index) => (
-            <motion.button
-              key={game.id}
-              type="button"
-              className="play-together-game-card"
-              onClick={() => setActiveGame(game.id)}
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: index * 0.08,
-                duration: 0.45,
-              }}
-              whileHover={{ y: -6 }}
-              whileTap={{ scale: 0.985 }}
-            >
-              <div className="play-together-game-top">
-                <div className="play-together-game-icon">
-                  {game.icon}
-                </div>
-
-                <span className="play-together-game-tag">
-                  {game.tag}
-                </span>
-              </div>
-
-              <div className="play-together-game-content">
-                <h3>{game.title}</h3>
-
-                <p>{game.description}</p>
-              </div>
-
-              <div className="play-together-game-footer">
-                <span>Open game</span>
-
-                <span className="play-together-arrow">
-                  →
-                </span>
-              </div>
-            </motion.button>
-          ))}
-        </section>
-
-        {/* FOOTER */}
-        <section className="play-together-footer-note">
-          <span>✦</span>
-
-          <p>
-            Little games.
-            <strong> Little moments.</strong>
-          </p>
-
-          <span>✦</span>
-        </section>
-      </section>
-
-      {/* GAME MODALS */}
-
-      <AnimatePresence>
-        {activeGame === "mood" && (
-          <GuessMood
-            onClose={() => setActiveGame(null)}
-          />
-        )}
-
-        {activeGame === "note" && (
-          <CompleteNote
-            onClose={() => setActiveGame(null)}
-          />
-        )}
-
-        {activeGame === "boxes" && (
-          <PickBox
-            onClose={() => setActiveGame(null)}
-          />
-        )}
-
-        {activeGame === "tap" && (
-          <FastTap
-            onClose={() => setActiveGame(null)}
-          />
-        )}
-      </AnimatePresence>
-    </main>
-  );
-}
-
-/* =========================================================
-   GAME 1 — GUESS THE MOOD
-========================================================= */
-
-function GuessMood({ onClose }) {
-  const [round, setRound] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [score, setScore] = useState(0);
-  const [finished, setFinished] = useState(false);
-
-  const current = MOOD_ROUNDS[round];
-
-  function selectMood(option) {
-    if (selected) return;
-
-    setSelected(option);
-
-    if (option === current.answer) {
-      setScore((value) => value + 1);
-    }
-  }
-
-  function nextRound() {
-    if (round === MOOD_ROUNDS.length - 1) {
-      setFinished(true);
-      return;
-    }
-
-    setRound((value) => value + 1);
-    setSelected(null);
-  }
-
-  function restart() {
-    setRound(0);
-    setSelected(null);
-    setScore(0);
-    setFinished(false);
-  }
-
-  return (
-    <GameModal
-      title="Guess the Mood"
-      subtitle="Read the clue and choose the feeling."
-      onClose={onClose}
-    >
-      {finished ? (
-        <div className="play-together-result">
-          <div className="play-together-result-icon">
-            ✦
-          </div>
-
-          <span>Your little score</span>
-
-          <strong>
-            {score} / {MOOD_ROUNDS.length}
-          </strong>
-
-          <p>
-            {score === MOOD_ROUNDS.length
-              ? "You read the mood perfectly."
-              : score >= 2
-              ? "Pretty good mood reading."
-              : "Maybe another little round?"}
-          </p>
-
-          <button
-            className="play-together-primary-button"
-            onClick={restart}
-          >
-            Play Again
-          </button>
-        </div>
-      ) : (
-        <div className="play-together-mood-game">
-          <div className="play-together-game-progress">
-            <span>
-              Round {round + 1}
-            </span>
-
-            <span>
-              Score {score}
-            </span>
-          </div>
-
-          <div className="play-together-clue">
-            <span>THE CLUE</span>
-
-            <p>
-              “{current.clue}”
-            </p>
-          </div>
-
-          <div className="play-together-mood-options">
-            {current.options.map((option) => {
-              let className =
-                "play-together-mood-option";
-
-              if (selected) {
-                if (option === current.answer) {
-                  className += " is-correct";
-                } else if (option === selected) {
-                  className += " is-wrong";
-                }
-              }
-
-              return (
-                <button
-                  key={option}
-                  className={className}
-                  onClick={() => selectMood(option)}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-
-          {selected && (
-            <motion.div
-              className="play-together-answer-message"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {selected === current.answer
-                ? "That's right ✦"
-                : `The answer was ${current.answer}.`}
-            </motion.div>
-          )}
-
-          {selected && (
             <button
-              className="play-together-primary-button"
-              onClick={nextRound}
+              className="wish-pick-button"
+              onClick={pickRandomWish}
+              disabled={!activeWishes.length}
             >
-              {round === MOOD_ROUNDS.length - 1
-                ? "See Result"
-                : "Next Clue →"}
+              <span>✦</span>
+              Pick a wish
             </button>
-          )}
-        </div>
-      )}
-    </GameModal>
-  );
-}
-
-/* =========================================================
-   GAME 2 — COMPLETE THE NOTE
-========================================================= */
-
-function CompleteNote({ onClose }) {
-  const [promptIndex, setPromptIndex] = useState(0);
-  const [answer, setAnswer] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  const prompt = NOTE_PROMPTS[promptIndex];
-
-  function saveAnswer() {
-    if (!answer.trim()) return;
-    setSaved(true);
-  }
-
-  function nextPrompt() {
-    setPromptIndex(
-      (value) => (value + 1) % NOTE_PROMPTS.length
-    );
-
-    setAnswer("");
-    setSaved(false);
-  }
-
-  return (
-    <GameModal
-      title="Complete the Note"
-      subtitle="There is no right answer. Make it yours."
-      onClose={onClose}
-    >
-      <div className="play-together-note-game">
-        <div className="play-together-note-number">
-          PROMPT {promptIndex + 1}
-        </div>
-
-        <div className="play-together-note-paper">
-          <span>✎</span>
-
-          <p>{prompt}</p>
-
-          <textarea
-            value={answer}
-            onChange={(event) =>
-              setAnswer(event.target.value)
-            }
-            placeholder="Write something..."
-            rows={4}
-          />
-        </div>
-
-        {saved && (
-          <motion.div
-            className="play-together-answer-message"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            Little note complete ✦
-          </motion.div>
-        )}
-
-        {!saved ? (
-          <button
-            className="play-together-primary-button"
-            onClick={saveAnswer}
-          >
-            Complete Note
-          </button>
-        ) : (
-          <button
-            className="play-together-primary-button"
-            onClick={nextPrompt}
-          >
-            Another Prompt →
-          </button>
-        )}
-      </div>
-    </GameModal>
-  );
-}
-
-/* =========================================================
-   GAME 3 — PICK A BOX
-========================================================= */
-
-function PickBox({ onClose }) {
-  const [opened, setOpened] = useState(null);
-  const [usedBoxes, setUsedBoxes] = useState([]);
-
-  function openBox(index) {
-    if (usedBoxes.includes(index)) return;
-
-    setOpened(index);
-    setUsedBoxes((current) => [...current, index]);
-  }
-
-  function chooseAgain() {
-    setOpened(null);
-  }
-
-  return (
-    <GameModal
-      title="Pick a Box"
-      subtitle="Choose one. You won't know what's inside."
-      onClose={onClose}
-    >
-      {opened === null ? (
-        <div className="play-together-box-game">
-          <div className="play-together-box-grid">
-            {BOX_CONTENT.map((_, index) => (
-              <motion.button
-                key={index}
-                className={`play-together-mystery-box ${
-                  usedBoxes.includes(index)
-                    ? "is-used"
-                    : ""
-                }`}
-                onClick={() => openBox(index)}
-                whileHover={
-                  usedBoxes.includes(index)
-                    ? {}
-                    : { y: -5, rotate: 1 }
-                }
-                whileTap={{ scale: 0.95 }}
-              >
-                <span>◇</span>
-
-                <small>
-                  {String(index + 1).padStart(2, "0")}
-                </small>
-              </motion.button>
-            ))}
           </div>
 
-          <p className="play-together-box-hint">
-            Pick a box that feels right.
-          </p>
-        </div>
-      ) : (
-        <motion.div
-          className="play-together-box-result"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <div className="play-together-box-result-icon">
-            {BOX_CONTENT[opened].icon}
+          <div className="wish-jar-visual">
+            <motion.div
+              className="jar-glow"
+              animate={{
+                scale: [1, 1.04, 1],
+                opacity: [0.5, 0.7, 0.5],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            <div className="jar-lid">
+              <span />
+              <span />
+            </div>
+
+            <div className="jar-neck" />
+
+            <div className="jar-body">
+              <div className="jar-glass-shine" />
+
+              {activeWishes.length === 0 ? (
+                <div className="jar-empty">
+                  <div className="jar-empty-icon">♡</div>
+                  <span>Your jar is waiting</span>
+                  <small>Add your first wish</small>
+                </div>
+              ) : (
+                <div className="jar-notes">
+                  {activeWishes
+                    .slice(0, 8)
+                    .map((wish, index) => {
+                      const rotations = [
+                        -9,
+                        7,
+                        -5,
+                        11,
+                        -7,
+                        5,
+                        -12,
+                        8,
+                      ];
+
+                      const positions = [
+                        [12, 18],
+                        [48, 10],
+                        [68, 24],
+                        [24, 42],
+                        [52, 37],
+                        [75, 46],
+                        [9, 58],
+                        [40, 61],
+                      ];
+
+                      const [left, top] =
+                        positions[index];
+
+                      return (
+                        <motion.div
+                          key={wish.id}
+                          className="jar-note"
+                          style={{
+                            left: `${left}%`,
+                            top: `${top}%`,
+                            rotate: rotations[index],
+                          }}
+                          animate={{
+                            y: [0, -4, 0],
+                          }}
+                          transition={{
+                            duration:
+                              2.5 + index * 0.15,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: index * 0.1,
+                          }}
+                        >
+                          <span>♡</span>
+                        </motion.div>
+                      );
+                    })}
+                </div>
+              )}
+
+              <div className="jar-base" />
+            </div>
+          </div>
+        </motion.section>
+
+        {/* ACTIVE WISHES */}
+        <section className="wish-list-section">
+          <div className="section-heading">
+            <div>
+              <span className="wish-small-label">
+                OUR DREAMS
+              </span>
+
+              <h2>Waiting in the jar</h2>
+            </div>
+
+            <span className="wish-count">
+              {activeWishes.length}{" "}
+              {activeWishes.length === 1
+                ? "wish"
+                : "wishes"}
+            </span>
           </div>
 
-          <span>
-            YOU FOUND
-          </span>
-
-          <h3>
-            {BOX_CONTENT[opened].title}
-          </h3>
-
-          <p>
-            {BOX_CONTENT[opened].text}
-          </p>
-
-          <button
-            className="play-together-primary-button"
-            onClick={chooseAgain}
-          >
-            Pick Another
-          </button>
-        </motion.div>
-      )}
-    </GameModal>
-  );
-}
-
-/* =========================================================
-   GAME 4 — FAST TAP
-========================================================= */
-
-function FastTap({ onClose }) {
-  const [playing, setPlaying] = useState(false);
-  const [time, setTime] = useState(10);
-  const [score, setScore] = useState(0);
-  const [finished, setFinished] = useState(false);
-
-  useEffect(() => {
-    if (!playing) return;
-
-    if (time <= 0) {
-      setPlaying(false);
-      setFinished(true);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setTime((value) => value - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [playing, time]);
-
-  function startGame() {
-    setScore(0);
-    setTime(10);
-    setFinished(false);
-    setPlaying(true);
-  }
-
-  function tap() {
-    if (!playing) return;
-
-    setScore((value) => value + 1);
-  }
-
-  return (
-    <GameModal
-      title="Fast Tap"
-      subtitle="Catch as many stars as you can."
-      onClose={onClose}
-    >
-      <div className="play-together-tap-game">
-
-        {!playing && !finished && (
-          <>
-            <div className="play-together-tap-intro">
-              <div>✦</div>
+          {loading ? (
+            <div className="wish-loading">
+              <div className="wish-spinner" />
+              <span>Opening our jar...</span>
+            </div>
+          ) : activeWishes.length === 0 ? (
+            <div className="wish-empty-card">
+              <div className="wish-empty-heart">♡</div>
 
               <h3>
-                Ready?
+                Nothing here yet.
               </h3>
 
               <p>
-                You have 10 seconds.
-                Tap the star as fast as you can.
+                Add a tiny dream, a crazy plan,
+                or something simple you'd love
+                to do together.
               </p>
+
+              <button
+                className="wish-secondary-button"
+                onClick={openAdd}
+              >
+                Add the first wish
+              </button>
+            </div>
+          ) : (
+            <div className="wish-grid">
+              <AnimatePresence>
+                {activeWishes.map((wish, index) => {
+                  const cat = getCategory(
+                    wish.category
+                  );
+
+                  return (
+                    <motion.article
+                      key={wish.id}
+                      className="wish-card"
+                      layout
+                      initial={{
+                        opacity: 0,
+                        y: 15,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        scale: 0.95,
+                      }}
+                      transition={{
+                        delay: index * 0.04,
+                      }}
+                      whileHover={{
+                        y: -4,
+                      }}
+                    >
+                      <div className="wish-card-top">
+                        <span className="wish-category">
+                          <span>{cat.icon}</span>
+                          {cat.label}
+                        </span>
+
+                        <button
+                          className="wish-more"
+                          onClick={() =>
+                            setSelectedWish(wish)
+                          }
+                          aria-label="View wish"
+                        >
+                          •••
+                        </button>
+                      </div>
+
+                      <button
+                        className="wish-card-content"
+                        onClick={() =>
+                          setSelectedWish(wish)
+                        }
+                      >
+                        <div className="wish-card-heart">
+                          ♡
+                        </div>
+
+                        <p>{wish.text}</p>
+                      </button>
+
+                      <div className="wish-card-bottom">
+                        <span>
+                          by{" "}
+                          {wish.authorName ||
+                            "You"}
+                        </span>
+
+                        <button
+                          className="wish-complete-button"
+                          disabled={
+                            actionId === wish.id
+                          }
+                          onClick={() =>
+                            handleComplete(wish)
+                          }
+                        >
+                          {actionId === wish.id
+                            ? "..."
+                            : "We did it ♡"}
+                        </button>
+                      </div>
+                    </motion.article>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          )}
+        </section>
+
+        {/* COMPLETED */}
+        {completedWishes.length > 0 && (
+          <section className="completed-section">
+            <div className="section-heading">
+              <div>
+                <span className="wish-small-label">
+                  MEMORIES MADE
+                </span>
+
+                <h2>We've done these ♡</h2>
+              </div>
+
+              <span className="wish-count">
+                {completedWishes.length}
+              </span>
             </div>
 
-            <button
-              className="play-together-primary-button"
-              onClick={startGame}
-            >
-              Start
-            </button>
-          </>
+            <div className="completed-list">
+              {completedWishes.map((wish) => {
+                const cat = getCategory(
+                  wish.category
+                );
+
+                return (
+                  <motion.div
+                    key={wish.id}
+                    className="completed-item"
+                    layout
+                  >
+                    <div className="completed-check">
+                      ✓
+                    </div>
+
+                    <div className="completed-content">
+                      <span>
+                        {cat.icon} {cat.label}
+                      </span>
+
+                      <p>{wish.text}</p>
+
+                      <small>
+                        Added by{" "}
+                        {wish.authorName ||
+                          "You"}
+                        {wish.createdAt
+                          ? ` · ${formatDate(
+                              wish.createdAt
+                            )}`
+                          : ""}
+                      </small>
+                    </div>
+
+                    <div className="completed-actions">
+                      <button
+                        onClick={() =>
+                          handleComplete(wish)
+                        }
+                        disabled={
+                          actionId === wish.id
+                        }
+                      >
+                        Undo
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          handleDelete(wish)
+                        }
+                        disabled={
+                          actionId === wish.id
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </section>
         )}
+      </section>
 
-        {playing && (
-          <>
-            <div className="play-together-tap-stats">
-              <div>
-                <span>TIME</span>
-                <strong>{time}s</strong>
-              </div>
-
-              <div>
-                <span>SCORE</span>
-                <strong>{score}</strong>
-              </div>
-            </div>
-
-            <motion.button
-              className="play-together-tap-target"
-              onClick={tap}
-              whileTap={{
-                scale: 0.8,
-                rotate: 10,
+      {/* PICKED WISH MODAL */}
+      <AnimatePresence>
+        {pickedWish && (
+          <motion.div
+            className="wish-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPickedWish(null)}
+          >
+            <motion.div
+              className="picked-modal"
+              initial={{
+                opacity: 0,
+                scale: 0.9,
+                y: 20,
               }}
               animate={{
-                y: [0, -7, 0],
+                opacity: 1,
+                scale: 1,
+                y: 0,
               }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
+              exit={{
+                opacity: 0,
+                scale: 0.9,
+                y: 20,
               }}
+              onClick={(event) =>
+                event.stopPropagation()
+              }
             >
-              ✦
-            </motion.button>
+              <button
+                className="modal-close"
+                onClick={() => setPickedWish(null)}
+              >
+                ×
+              </button>
 
-            <p className="play-together-tap-hint">
-              Tap the star!
-            </p>
-          </>
+              <div className="picked-sparkle">
+                ✦
+              </div>
+
+              <span className="picked-label">
+                TODAY'S LITTLE MISSION
+              </span>
+
+              <h2>What about this one?</h2>
+
+              <div className="picked-wish">
+                <div>♡</div>
+                <p>{pickedWish.text}</p>
+              </div>
+
+              <div className="picked-actions">
+                <button
+                  className="wish-secondary-button"
+                  onClick={pickRandomWish}
+                >
+                  Pick another
+                </button>
+
+                <button
+                  className="wish-primary-button"
+                  onClick={() => {
+                    handleComplete(pickedWish);
+                    setPickedWish(null);
+                  }}
+                >
+                  We did it ♡
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {finished && (
-          <div className="play-together-result">
-            <div className="play-together-result-icon">
-              ✦
-            </div>
-
-            <span>
-              YOUR SCORE
-            </span>
-
-            <strong>
-              {score}
-            </strong>
-
-            <p>
-              stars in 10 seconds.
-            </p>
-
-            <button
-              className="play-together-primary-button"
-              onClick={startGame}
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-      </div>
-    </GameModal>
-  );
-}
-
-/* =========================================================
-   SHARED MODAL
-========================================================= */
-
-function GameModal({
-  title,
-  subtitle,
-  onClose,
-  children,
-}) {
-  return (
-    <motion.div
-      className="play-together-modal-backdrop"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div
-        className="play-together-modal"
-        initial={{
-          opacity: 0,
-          y: 25,
-          scale: 0.97,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          scale: 1,
-        }}
-        exit={{
-          opacity: 0,
-          y: 20,
-          scale: 0.97,
-        }}
-        transition={{ duration: 0.25 }}
-        onClick={(event) =>
-          event.stopPropagation()
-        }
-      >
-        <div className="play-together-modal-header">
-          <div>
-            <span className="play-together-modal-eyebrow">
-              ✦ PLAY TIME
-            </span>
-
-            <h2>{title}</h2>
-
-            <p>{subtitle}</p>
-          </div>
-
-          <button
-            type="button"
-            className="play-together-modal-close"
-            onClick={onClose}
-            aria-label="Close game"
+      {/* VIEW WISH MODAL */}
+      <AnimatePresence>
+        {selectedWish && (
+          <motion.div
+            className="wish-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedWish(null)}
           >
-            ×
-          </button>
-        </div>
+            <motion.div
+              className="wish-detail-modal"
+              initial={{
+                opacity: 0,
+                y: 20,
+                scale: 0.96,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+              }}
+              exit={{
+                opacity: 0,
+                y: 20,
+                scale: 0.96,
+              }}
+              onClick={(event) =>
+                event.stopPropagation()
+              }
+            >
+              <button
+                className="modal-close"
+                onClick={() =>
+                  setSelectedWish(null)
+                }
+              >
+                ×
+              </button>
 
-        <div className="play-together-modal-body">
-          {children}
-        </div>
-      </motion.div>
-    </motion.div>
+              <div className="detail-heart">
+                ♡
+              </div>
+
+              <span className="wish-category detail-category">
+                <span>
+                  {
+                    getCategory(
+                      selectedWish.category
+                    ).icon
+                  }
+                </span>
+
+                {
+                  getCategory(
+                    selectedWish.category
+                  ).label
+                }
+              </span>
+
+              <h2>{selectedWish.text}</h2>
+
+              <p className="detail-author">
+                Added by{" "}
+                {selectedWish.authorName ||
+                  "You"}
+              </p>
+
+              {selectedWish.createdAt && (
+                <p className="detail-date">
+                  {formatDate(
+                    selectedWish.createdAt
+                  )}
+                </p>
+              )}
+
+              <div className="detail-actions">
+                <button
+                  className="wish-edit-button"
+                  onClick={() =>
+                    openEdit(selectedWish)
+                  }
+                >
+                  Edit
+                </button>
+
+                <button
+                  className="wish-danger-button"
+                  onClick={() =>
+                    handleDelete(selectedWish)
+                  }
+                >
+                  Delete
+                </button>
+
+                <button
+                  className="wish-primary-button"
+                  onClick={() =>
+                    handleComplete(selectedWish)
+                  }
+                >
+                  We did it ♡
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ADD / EDIT MODAL */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="wish-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeModal}
+          >
+            <motion.div
+              className="wish-form-modal"
+              initial={{
+                opacity: 0,
+                y: 25,
+                scale: 0.97,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+              }}
+              exit={{
+                opacity: 0,
+                y: 25,
+                scale: 0.97,
+              }}
+              onClick={(event) =>
+                event.stopPropagation()
+              }
+            >
+              <button
+                className="modal-close"
+                onClick={closeModal}
+              >
+                ×
+              </button>
+
+              <span className="wish-small-label">
+                {editingWish
+                  ? "EDIT YOUR WISH"
+                  : "ADD TO OUR JAR"}
+              </span>
+
+              <h2>
+                {editingWish
+                  ? "Change the dream."
+                  : "What's on your mind?"}
+              </h2>
+
+              <form onSubmit={handleSave}>
+                <label className="wish-field">
+                  <span>Your wish</span>
+
+                  <textarea
+                    value={wishText}
+                    onChange={(event) =>
+                      setWishText(
+                        event.target.value
+                      )
+                    }
+                    placeholder="e.g. Watch the sunset somewhere beautiful..."
+                    maxLength={300}
+                    autoFocus
+                  />
+
+                  <small>
+                    {wishText.length}/300
+                  </small>
+                </label>
+
+                <div className="wish-field">
+                  <span>What kind of wish?</span>
+
+                  <div className="category-grid">
+                    {CATEGORIES.map((item) => (
+                      <button
+                        type="button"
+                        key={item.id}
+                        className={`category-option ${
+                          category === item.id
+                            ? "active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          setCategory(item.id)
+                        }
+                      >
+                        <span>
+                          {item.icon}
+                        </span>
+
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="wish-form-error">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="wish-save-button"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving..."
+                    : editingWish
+                    ? "Save changes"
+                    : "Put it in the jar ♡"}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
   );
 }
