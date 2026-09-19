@@ -11,7 +11,7 @@ const LINKS = [
   { to: "/memories", label: "Memories", icon: "❈" },
   { to: "/our-world", label: "Our World", icon: "✦" },
   { to: "/my-space", label: "My Space", icon: "♡" },
-  { to: "/play-together", label: "Wish jar", icon: "🎮" },
+  { to: "/play-together", label: "Wish jar", icon: "❃" },
   { to: "/settings", label: "Settings", icon: "⚙" },
 ];
 
